@@ -1,0 +1,4 @@
+background : #171722
+backgroundLite  : #1f1f2d
+orange : #ff9301
+textOrange : #FF8C00

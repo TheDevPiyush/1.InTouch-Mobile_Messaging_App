@@ -1,7 +1,8 @@
 {
   "expo": {
-    "name": "ChatApp",
-    "slug": "ChatApp",
+    "name": "InTouch",
+    "slug": "InTouch",
+    "scheme": "InTouch",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -22,6 +23,10 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font"
+    ]
   }
 }

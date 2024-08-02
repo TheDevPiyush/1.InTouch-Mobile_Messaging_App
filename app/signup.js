@@ -1,4 +1,9 @@
-import { View, Text, ScrollView, TextInput, StyleSheet, StatusBar, TouchableOpacity, Image } from 'react-native'
+import {
+    View, Text, ScrollView,
+    TextInput, StyleSheet, StatusBar,
+    TouchableOpacity, Image, KeyboardAvoidingView,
+    Platform
+} from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useFonts } from 'expo-font';
@@ -6,8 +11,13 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useNavigation } from 'expo-router';
 import logo from '../assets/image.png'
 
+import { createUserWithEmailAndPassword, getAuth } from 'firebase/auth';
+import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { firestore } from '../firebaseConfig';
+
 SplashScreen.preventAutoHideAsync();
 const signup = () => {
+    const navigation = useNavigation();
     const [loaded, error] = useFonts({
         'Outfit-Black-Regular': require('../assets/Outfit-Regular.ttf'),
         'Outfit-Black-Medium': require('../assets/Outfit-Medium.ttf'),
@@ -15,101 +25,135 @@ const signup = () => {
     });
 
     const [focused, setFocused] = useState('');
-    const navigation = useNavigation();
+    const [username, setusername] = useState('');
+    const [email, setemail] = useState('')
+    const [password, setpassword] = useState('')
+    const [disabled, setdisabled] = useState(true)
+
 
     useEffect(() => {
-        if (loaded || error) {
-            SplashScreen.hideAsync();
-        }
+        if (loaded || error) SplashScreen.hideAsync();
     }, [loaded, error]);
 
-    if (!loaded && !error) {
-        return null;
+    useEffect(() => {
+        if (email.trim() !== '' && password.trim() !== '' && username.trim() !== '') setdisabled(false)
+        else setdisabled(true)
+    }, [username, email, password])
+
+    if (!loaded && !error) return null;
+
+    const auth = getAuth()
+
+    const createNewUserAndProfile = async () => {
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+
+            await setDoc(doc(firestore, 'Users', user.uid), {
+                username: username,
+                email: email,
+                profilePicture: '',
+                createdAt: serverTimestamp(),
+                lastLogin: serverTimestamp(),
+            });
+
+            console.log('User signed up and profile created!');
+        } catch (error) {
+            console.error('Error signing up: ', error);
+        }
     }
+
     return (
         <SafeAreaView style={{
             flex: 1, backgroundColor: '#171722'
         }}>
+
             <StatusBar barStyle='light-content' />
 
-            <ScrollView overScrollMode='never' showsVerticalScrollIndicator={false} contentContainerStyle={{
-                backgroundColor: "rgba(255, 0,0,0)", flexGrow: 1
-            }}>
-                {/* Main View */}
-                <View style={{
-                    marginTop: '8%', marginHorizontal: 15
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} >
+                <ScrollView overScrollMode='never' showsVerticalScrollIndicator={false} contentContainerStyle={{
+                    backgroundColor: "rgba(255, 0,0,0)", flexGrow: 1
                 }}>
-                    {/* Title Text*/}
+                    {/* Main View */}
                     <View style={{
-                        backgroundColor: '', flexDirection: 'row',
-                        alignItems: 'center', gap: 10
+                        marginTop: '8%', marginHorizontal: 15
                     }}>
-                        <Image source={logo} style={{ height: 50, width: 50, alignItems: 'center', }} resizeMode='contain' />
-                        <Text style={{
-                            color: 'white',
-                            fontSize: 50,
-                            fontFamily: 'Outfit-Black-Bold',
-                        }}>InTouch</Text>
-                    </View>
-                    <Text style={{                        
-                        marginVertical: '5%',
-                        color: 'rgba(255,255,255,0.85)',
-                        fontSize: 35,
-                        fontFamily: 'Outfit-Black-Medium',
-                    }}>Sign Up</Text>
-
-
-                    <Text style={styles.labelStyle}>Username</Text>
-                    <View style={[styles.inputContainer, focused === "username" && styles.focusInput]}>
-                        <TextInput
-                            onFocus={() => { setFocused("username") }}
-                            style={styles.inputStyle}
-                            placeholder='uniqueName@69'
-                            placeholderTextColor='rgba(128, 128,128,0.6)'
-                        />
-                    </View>
-
-                    <Text style={styles.labelStyle}>Email</Text>
-                    <View style={[styles.inputContainer, focused === "email" && styles.focusInput]}>
-                        <TextInput
-                            onFocus={() => { setFocused("email") }}
-                            style={styles.inputStyle}
-                            placeholder='john@wick.com'
-                            placeholderTextColor='rgba(128, 128,128,0.6)'
-                        />
-                    </View>
-
-                    <Text style={styles.labelStyle}>Password</Text>
-                    <View style={[styles.inputContainer, focused === "password" && styles.focusInput]}>
-                        <TextInput
-                            onFocus={() => { setFocused("password") }}
-                            style={styles.inputStyle}
-                            secureTextEntry={true}
-                            placeholder='●●●●●●●●●'
-                            placeholderTextColor='rgba(128, 128,128,0.6)'
-                        />
-                    </View>
-                    <TouchableOpacity style={styles.button}>
-                        <Text style={styles.buttonText}>Sign Up</Text>
-                    </TouchableOpacity>
-
-                    {/* GO TO LOG IN PAGE BUTTON */}
-
-                    <View style={{
-                        flexDirection: 'row', alignItems: 'center',
-                        justifyContent: 'center', marginVertical: 10
-                    }}>
-                        <Text style={styles.haveAccountText}>
-                            Already have an account?
-                        </Text>
-                        <TouchableOpacity onPress={() => {
-                            navigation.navigate('index')
+                        {/* Title Text*/}
+                        <View style={{
+                            backgroundColor: '', flexDirection: 'row',
+                            alignItems: 'center', gap: 10
                         }}>
-                            <Text style={styles.loginbuttonText}> Log in!</Text>
+                            <Image source={logo} style={{ height: 50, width: 50, alignItems: 'center', }} resizeMode='contain' />
+                            <Text style={{
+                                color: 'white',
+                                fontSize: 50,
+                                fontFamily: 'Outfit-Black-Bold',
+                            }}>InTouch</Text>
+                        </View>
+                        <Text style={{
+                            marginVertical: '5%',
+                            color: 'rgba(255,255,255,0.85)',
+                            fontSize: 35,
+                            fontFamily: 'Outfit-Black-Medium',
+                        }}>Sign Up</Text>
+                        <Text style={styles.labelStyle}>Username</Text>
+                        <View style={[styles.inputContainer, focused === "username" && styles.focusInput]}>
+                            <TextInput
+                                keyboardType='default'
+                                returnKeyType='next'
+                                onChangeText={setusername}
+                                onFocus={() => { setFocused("username") }}
+                                style={styles.inputStyle}
+                                placeholder='uniqueName@69'
+                                placeholderTextColor='rgba(128, 128,128,0.6)'
+                            />
+                        </View>
+                        <Text style={styles.labelStyle}>Email</Text>
+                        <View style={[styles.inputContainer, focused === "email" && styles.focusInput]}>
+                            <TextInput
+                                keyboardType='email-address'
+                                returnKeyType='next'
+                                onChangeText={setemail}
+                                onFocus={() => { setFocused("email") }}
+                                style={styles.inputStyle}
+                                placeholder='john@wick.com'
+                                placeholderTextColor='rgba(128, 128,128,0.6)'
+                            />
+                        </View>
+                        <Text style={styles.labelStyle}>Password</Text>
+                        <View style={[styles.inputContainer, focused === "password" && styles.focusInput]}>
+                            <TextInput
+                                keyboardType='default'
+                                returnKeyType='next'
+                                onChangeText={setpassword}
+                                onFocus={() => { setFocused("password") }}
+                                style={styles.inputStyle}
+                                secureTextEntry={true}
+                                placeholder='●●●●●●●●●'
+                                placeholderTextColor='rgba(128, 128,128,0.6)'
+                            />
+                        </View>
+                        {/* SIGN UP BUTTON */}
+                        <TouchableOpacity disabled={disabled} style={styles.button} onPress={createNewUserAndProfile}>
+                            <Text style={styles.buttonText}>Sign Up</Text>
                         </TouchableOpacity>
+                        {/* GO TO LOG IN PAGE BUTTON */}
+                        <View style={{
+                            flexDirection: 'row', alignItems: 'center',
+                            justifyContent: 'center', marginVertical: 10
+                        }}>
+                            <Text style={styles.haveAccountText}>
+                                Already have an account?
+                            </Text>
+                            <TouchableOpacity onPress={() => {
+                                navigation.navigate('index')
+                            }}>
+                                <Text style={styles.loginbuttonText}> Log in!</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
-                </View>
-            </ScrollView>
+                </ScrollView>
+            </KeyboardAvoidingView>
         </SafeAreaView >
     )
 

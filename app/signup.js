@@ -2,9 +2,11 @@ import {
     View, Text, ScrollView,
     TextInput, StyleSheet, StatusBar,
     TouchableOpacity, Image, KeyboardAvoidingView,
-    Platform
+    Platform,
+    Alert,
+    ActivityIndicator
 } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
@@ -16,7 +18,7 @@ import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { firestore } from '../firebaseConfig';
 
 SplashScreen.preventAutoHideAsync();
-const signup = () => {
+const Signup = () => {
     const navigation = useNavigation();
     const [loaded, error] = useFonts({
         'Outfit-Black-Regular': require('../assets/Outfit-Regular.ttf'),
@@ -29,6 +31,10 @@ const signup = () => {
     const [email, setemail] = useState('')
     const [password, setpassword] = useState('')
     const [disabled, setdisabled] = useState(true)
+    const usernameRef = useRef();
+    const emailRef = useRef();
+    const passRef = useRef();
+    const [loading, setloading] = useState(false)
 
 
     useEffect(() => {
@@ -46,6 +52,8 @@ const signup = () => {
 
     const createNewUserAndProfile = async () => {
         try {
+            setdisabled(true)
+            setloading(true)
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
@@ -56,10 +64,19 @@ const signup = () => {
                 createdAt: serverTimestamp(),
                 lastLogin: serverTimestamp(),
             });
-
-            console.log('User signed up and profile created!');
+            setdisabled(false)
+            setloading(false)
+            Alert.alert('Success', 'Your account has been created successfully.');
+            navigation.navigate('index');
         } catch (error) {
-            console.error('Error signing up: ', error);
+            setdisabled(false)
+            setloading(false)
+            console.log(error.code)
+            if (error.code === 'auth/email-already-in-use') Alert.alert('Account Already Exits', `The email "${email}" is already in use.`)
+            else if (error.code === 'auth/invalid-email') Alert.alert('Invalid Email', `Valid email format is required.`)
+            else if (error.code === 'auth/weak-password') Alert.alert('Weak Password', `Choose a strong password by combining letters, numbers or characters.`)
+
+            else Alert.alert('Something went wrong', 'Please try again. Something went wrong, we are working on it.')
         }
     }
 
@@ -99,10 +116,12 @@ const signup = () => {
                         <Text style={styles.labelStyle}>Username</Text>
                         <View style={[styles.inputContainer, focused === "username" && styles.focusInput]}>
                             <TextInput
+                                ref={usernameRef}
                                 keyboardType='default'
                                 returnKeyType='next'
                                 onChangeText={setusername}
                                 onFocus={() => { setFocused("username") }}
+                                onSubmitEditing={() => { emailRef.current.focus() }}
                                 style={styles.inputStyle}
                                 placeholder='uniqueName@69'
                                 placeholderTextColor='rgba(128, 128,128,0.6)'
@@ -111,18 +130,21 @@ const signup = () => {
                         <Text style={styles.labelStyle}>Email</Text>
                         <View style={[styles.inputContainer, focused === "email" && styles.focusInput]}>
                             <TextInput
+                                ref={emailRef}
+                                onSubmitEditing={() => { passRef.current.focus() }}
                                 keyboardType='email-address'
                                 returnKeyType='next'
                                 onChangeText={setemail}
                                 onFocus={() => { setFocused("email") }}
                                 style={styles.inputStyle}
-                                placeholder='john@wick.com'
+                                placeholder='youremail@example.com'
                                 placeholderTextColor='rgba(128, 128,128,0.6)'
                             />
                         </View>
                         <Text style={styles.labelStyle}>Password</Text>
                         <View style={[styles.inputContainer, focused === "password" && styles.focusInput]}>
                             <TextInput
+                                ref={passRef}
                                 keyboardType='default'
                                 returnKeyType='next'
                                 onChangeText={setpassword}
@@ -135,7 +157,10 @@ const signup = () => {
                         </View>
                         {/* SIGN UP BUTTON */}
                         <TouchableOpacity disabled={disabled} style={styles.button} onPress={createNewUserAndProfile}>
-                            <Text style={styles.buttonText}>Sign Up</Text>
+                            {loading
+                                ? <ActivityIndicator size={'small'} color={'#1f1f2d'} />
+                                : <Text style={styles.buttonText}>Sign Up</Text>
+                            }
                         </TouchableOpacity>
                         {/* GO TO LOG IN PAGE BUTTON */}
                         <View style={{
@@ -207,4 +232,4 @@ const styles = StyleSheet.create({
     },
 })
 
-export default signup
+export default Signup

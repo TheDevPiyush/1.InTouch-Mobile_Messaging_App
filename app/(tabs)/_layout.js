@@ -15,7 +15,7 @@ const Layout = () => {
             tabBarStyle: { backgroundColor: '#1f1f2d' },
             tabBarActiveTintColor: '#FF8C00',
             tabBarLabelStyle: { fontSize: 15 },
-            headerStyle: { backgroundColor: '#1f1f2d',},
+            headerStyle: { backgroundColor: '#1f1f2d', },
             headerTitleStyle: { color: '#FF8C00', fontStyle: 'Outfit-Black-Bold', fontSize: 23, marginVertical: 5 },
             headerTitleAlign: 'left',
         }} >
@@ -25,6 +25,22 @@ const Layout = () => {
                 tabBarActiveTintColor: '#FF8C00',
 
             }} name='ChatsTab' />
+
+
+            <Tabs.Screen options={{
+                title: 'Search',
+                tabBarIcon: ({ focused }) => (<Ionicons name="search" size={24} color={focused ? '#FF8C00' : 'grey'} />),
+                tabBarActiveTintColor: '#FF8C00',
+
+            }} name='SearchTab'
+                listeners={({ navigation }) => ({
+                    tabPress: (e) => {
+                        e.preventDefault();
+                        navigation.navigate('SearchModal');
+                    },
+                })}
+            />
+
             <Tabs.Screen options={{
                 title: 'Profile',
                 tabBarIcon: ({ focused }) => (<Ionicons name="people" size={24} color={focused ? '#FF8C00' : 'grey'} />),

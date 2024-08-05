@@ -14,7 +14,7 @@ import { useNavigation } from 'expo-router';
 import logo from '../assets/image.png'
 
 import { createUserWithEmailAndPassword, getAuth } from 'firebase/auth';
-import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { collection, doc, getDocs, query, serverTimestamp, setDoc, where } from 'firebase/firestore';
 import { firestore } from '../firebaseConfig';
 
 SplashScreen.preventAutoHideAsync();
@@ -50,6 +50,29 @@ const Signup = () => {
 
     const auth = getAuth()
 
+
+    const checkUsernameExists = async (username) => {
+        const usersRef = collection(firestore, 'Users');
+        const q = query(usersRef, where('username', '==', username.toLowerCase()));
+        const querySnapshot = await getDocs(q);
+        return !querySnapshot.empty;
+    };
+
+    const handleSignUp = async () => {
+        setdisabled(true);
+        setloading(true);
+
+        const usernameExists = await checkUsernameExists(username);
+        if (usernameExists) {
+            setdisabled(false);
+            setloading(false);
+            Alert.alert('Username Taken', `The username "${username}" is already taken. Please choose a different username.`);
+            return;
+        }
+
+        await createNewUserAndProfile();
+    };
+
     const createNewUserAndProfile = async () => {
         try {
             setdisabled(true)
@@ -58,7 +81,7 @@ const Signup = () => {
             const user = userCredential.user;
 
             await setDoc(doc(firestore, 'Users', user.uid), {
-                username: username,
+                username: username.toLowerCase(),
                 email: email,
                 profilePicture: '',
                 createdAt: serverTimestamp(),
@@ -119,11 +142,15 @@ const Signup = () => {
                                 ref={usernameRef}
                                 keyboardType='default'
                                 returnKeyType='next'
-                                onChangeText={setusername}
+                                onChangeText={text => {
+                                    const formattedText = text.toLowerCase().replace(/\s+/g, '');
+                                    setusername(formattedText);
+                                }}
+                                value={username}
                                 onFocus={() => { setFocused("username") }}
                                 onSubmitEditing={() => { emailRef.current.focus() }}
                                 style={styles.inputStyle}
-                                placeholder='uniqueName@69'
+                                placeholder='username@69'
                                 placeholderTextColor='rgba(128, 128,128,0.6)'
                             />
                         </View>
@@ -156,7 +183,7 @@ const Signup = () => {
                             />
                         </View>
                         {/* SIGN UP BUTTON */}
-                        <TouchableOpacity disabled={disabled} style={styles.button} onPress={createNewUserAndProfile}>
+                        <TouchableOpacity disabled={disabled} style={styles.button} onPress={handleSignUp}>
                             {loading
                                 ? <ActivityIndicator size={'small'} color={'#1f1f2d'} />
                                 : <Text style={styles.buttonText}>Sign Up</Text>

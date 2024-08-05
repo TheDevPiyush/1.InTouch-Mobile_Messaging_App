@@ -169,12 +169,6 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         marginVertical: 5
     },
-    labelStyle: {
-        marginVertical: 10,
-        color: 'rgba(255,255,255,0.7)',
-        fontSize: 20,
-        fontFamily: 'Outfit-Black-Regular',
-    },
     inputStyle: {
         fontSize: 20,
         padding: 12, width: '100%', height: '100%', color: 'white',
@@ -183,6 +177,12 @@ const styles = StyleSheet.create({
     focusInput: {
         borderWidth: 1,
         borderColor: '#FF8C00'
+    },
+    labelStyle: {
+        marginVertical: 10,
+        color: 'rgba(255,255,255,0.7)',
+        fontSize: 20,
+        fontFamily: 'Outfit-Black-Regular',
     },
     button: {
         backgroundColor: '#ff9301',

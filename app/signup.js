@@ -83,9 +83,9 @@ const Signup = () => {
             await setDoc(doc(firestore, 'Users', user.uid), {
                 username: username.toLowerCase(),
                 email: email,
-                profilePicture: '',
                 createdAt: serverTimestamp(),
                 lastLogin: serverTimestamp(),
+                uid : userCredential.user.uid
             });
             setdisabled(false)
             setloading(false)

@@ -61,10 +61,10 @@ const Login = () => {
         } catch (error) {
             setdisabled(false)
             setloading(false)
-            if (error.code === 'auth/invalid-credential') Alert.alert('Wrong Credentials', "Invalid Email or Password. Try again.")
+            if (error.code === 'auth/invalid-credential') Alert.alert('Wrong Credentials', "Wrong email or password. Try again.")
             else if (error.code === 'auth/too-many-requests') Alert.alert('Too many attempts', "You've tried too many failed attempts. Try again after few minutes.")
-
-            else Alert.alert('Something went wrong', 'Please try again. Something went wrong, we are working on it.')
+            else if (error.code === 'auth/invalid-email') Alert.alert('Account not found', "There is no account registered with this email. Sign up to continue.")
+            else Alert.alert(`Something went wrong', 'Please try again. Something went wrong, we are working on it.`)
         }
     }
 

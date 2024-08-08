@@ -1,14 +1,19 @@
-import { View, Text, TextInput, StyleSheet, FlatList } from 'react-native';
+import { View, Text, TextInput, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { useFonts } from 'expo-font';
-import { collection, query, where, getDocs, startAt, endAt } from "firebase/firestore";
-import { firestore } from '../firebaseConfig';
+import { collection, query, where, getDocs, startAt, endAt, setDoc, doc, getDoc } from "firebase/firestore";
+import { auth, firestore } from '../firebaseConfig';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { router, useNavigation, usePathname } from 'expo-router';
 
 const SearchModal = () => {
+
     const [users, setUsers] = useState([]);
     const [search, setSearch] = useState('');
     const [focused, setFocused] = useState('')
     const [notFound, setNotFound] = useState(false)
+    const navigation = useNavigation()
+
     useEffect(() => {
         if (search.length > 0) {
             getUsers();
@@ -17,6 +22,17 @@ const SearchModal = () => {
             setNotFound(false)
         }
     }, [search]);
+
+
+    const [loaded] = useFonts({
+        'Outfit-Black-Regular': require('../assets/Outfit-Regular.ttf'),
+        'Outfit-Black-Medium': require('../assets/Outfit-Medium.ttf'),
+        'Outfit-Black-Bold': require('../assets/Outfit-Bold.ttf'),
+    });
+
+    if (!loaded) {
+        return null;
+    }
 
     const getUsers = async () => {
         try {
@@ -35,20 +51,40 @@ const SearchModal = () => {
         }
     }
 
-    const [loaded] = useFonts({
-        'Outfit-Black-Regular': require('../assets/Outfit-Regular.ttf'),
-        'Outfit-Black-Medium': require('../assets/Outfit-Medium.ttf'),
-        'Outfit-Black-Bold': require('../assets/Outfit-Bold.ttf'),
-    });
-
-    if (!loaded) {
-        return null;
+    const handleUserSelect = async (item) => {
+        const currentUserUID = auth.currentUser.uid;
+        const searchedUserUID = item.uid;
+        await checkAndCreateChat(currentUserUID, searchedUserUID, item);
     }
+    const getChatID = (uid1, uid2) => {
+        return [uid1, uid2].sort().join('_');
+    }
+
+    const checkAndCreateChat = async (currentUserUID, searchedUserUID, item) => {
+        try {
+            const chatID = getChatID(currentUserUID, searchedUserUID);
+            const chatDocRef = doc(firestore, "Chats", chatID);
+            const chatDoc = await getDoc(chatDocRef);
+
+            if (!chatDoc.exists()) {
+                await setDoc(chatDocRef, {
+                    user1: currentUserUID,
+                    user2: searchedUserUID,
+                    createdAt: new Date(),
+                });
+            }
+            navigation.goBack();
+            router.push({ pathname: '/[chatid]', params: { username: item.username, chatID: chatID, searchedUserUID: searchedUserUID, currentUserUID: currentUserUID } });
+
+        } catch (error) {
+            console.error("Error checking or creating chat document: ", error);
+        }
+    };
 
     return (
         <View style={styles.container}>
             <View>
-                <Text style={{ marginVertical: 10, fontSize: 17, color: '#FF8C00' }}>Search a user</Text>
+                <Text style={{ marginVertical: 10, fontSize: 20, color: 'rgba(128,128,128,0.6)' }}>Search a friend</Text>
                 <View
                     style={[
                         styles.inputContainer, focused === "search"
@@ -66,14 +102,19 @@ const SearchModal = () => {
                 </View>
             </View>
             {notFound ? <Text style={{
-                marginVertical: 10, fontSize: 15, color: '#FF8C00', textAlign: 'center', fontWeight: 'bold'
+                marginVertical: 10, fontSize: 20, color: '#FF8C00', textAlign: 'center', fontWeight: 'bold'
             }}>User not found!</Text>
 
                 : <FlatList
                     data={users}
                     keyExtractor={(item, index) => index.toString()}
                     renderItem={({ item }) => (
-                        <Text style={styles.user}>{item.username}</Text>
+                        <View style={styles.searchItem} >
+                            <TouchableOpacity onPress={() => handleUserSelect(item)} style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <Ionicons name='person' size={20} color='#FF8C00' />
+                                <Text style={styles.user}>{item.username}</Text>
+                            </TouchableOpacity>
+                        </View>
                     )}
                 />}
         </View>
@@ -110,11 +151,16 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#FF8C00'
     },
-    user: {
-        color: 'white',
-        padding: 10,
+    searchItem: {
+        borderBottomColor: 'rgba(128,128,128,0.3)',
         borderBottomWidth: 1,
-        borderBottomColor: 'gray',
+        marginVertical: 5
+    },
+    user: {
+        color: '#ff9301',
+        padding: 10,
+        fontSize: 20,
+        fontFamily: 'Outfit-Black-Medium'
     }
 });
 

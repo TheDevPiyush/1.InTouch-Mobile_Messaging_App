@@ -68,13 +68,12 @@ const SearchModal = () => {
 
             if (!chatDoc.exists()) {
                 await setDoc(chatDocRef, {
-                    user1: currentUserUID,
-                    user2: searchedUserUID,
+                    participants: [currentUserUID, searchedUserUID],
                     createdAt: new Date(),
                 });
             }
             navigation.goBack();
-            router.push({ pathname: '/[chatid]', params: { username: item.username, chatID: chatID, searchedUserUID: searchedUserUID, currentUserUID: currentUserUID } });
+            router.push({ pathname: '/[chatid]', params: { username: item.username, chatID: chatID, searchedUserUID: searchedUserUID, currentUserUID: currentUserUID,} });
 
         } catch (error) {
             console.error("Error checking or creating chat document: ", error);

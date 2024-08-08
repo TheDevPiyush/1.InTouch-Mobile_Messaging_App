@@ -103,7 +103,8 @@ const Messages = () => {
                 from: currentUserUID,
                 to: searchedUserUID,
                 text: input,
-                timestamp: serverTimestamp()
+                timestamp: serverTimestamp(),
+                fromUserName: username,
             };
 
             const chatDocRef = doc(firestore, 'Chats', chatID);
@@ -168,7 +169,7 @@ const Messages = () => {
                         value={input}
                         onChangeText={setInput}
                         placeholderTextColor={'rgba(128,128,128,0.6)'}
-                        onSubmitEditing={sendMessage} // Send message on pressing enter
+                        onSubmitEditing={sendMessage}
                         returnKeyType="send"
                     />
                     <TouchableOpacity onPress={sendMessage}>

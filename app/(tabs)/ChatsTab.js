@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { firestore, auth } from '../../firebaseConfig';
 import { collection, query, where, onSnapshot, orderBy, limit, getDocs, doc, getDoc } from 'firebase/firestore';
 import { router, useNavigation } from 'expo-router';
@@ -7,15 +7,22 @@ import { useFonts } from 'expo-font';
 import Ionicons from '@expo/vector-icons/Ionicons'
 
 const ChatsTab = () => {
-    const currentUserUID = auth.currentUser.uid;
     const [chats, setChats] = useState([]);
     const [loaded] = useFonts({
         'Outfit-Black-Regular': require('../../assets/Outfit-Regular.ttf'),
         'Outfit-Black-Medium': require('../../assets/Outfit-Medium.ttf'),
         'Outfit-Black-Bold': require('../../assets/Outfit-Bold.ttf'),
     });
+    const [currentUserUID, setcurrentUserUID] = useState(null);
 
     const navigation = useNavigation();
+
+    useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged(() => {
+            setcurrentUserUID(auth.currentUser.uid)
+        })
+        return () => unsubscribe()
+    }, [])
 
     useEffect(() => {
         if (!loaded) return null;
@@ -38,7 +45,6 @@ const ChatsTab = () => {
 
                 const messagesCollectionRef = collection(firestore, 'Chats', chatID, 'Messages');
                 const recentMessageQuery = query(messagesCollectionRef, orderBy('timestamp', 'desc'), limit(1));
-
                 const recentMessageUnsubscribe = onSnapshot(recentMessageQuery, (recentMessageSnapshot) => {
                     if (!recentMessageSnapshot.empty) {
                         let recentMessage = null;
@@ -48,25 +54,16 @@ const ChatsTab = () => {
 
                         const otherUserUid = recentMessage.from === currentUserUID ? recentMessage.to : recentMessage.from;
 
-                        if (userCache[otherUserUid]) {
-                            addChatToData(chatID, chatData, recentMessage, userCache[otherUserUid]);
-                        } else {
-                            const userDocRef = doc(firestore, 'Users', otherUserUid);
-                            getDoc(userDocRef).then((userDoc) => {
-                                if (userDoc.exists()) {
-                                    const username = userDoc.data().username;
-                                    userCache[otherUserUid] = username; // Cache the username
+                        const userDocRef = doc(firestore, 'Users', otherUserUid);
+                        getDoc(userDocRef).then((userDoc) => {
+                            if (userDoc.exists()) {
+                                const username = userDoc.data().username;
 
-                                    addChatToData(chatID, chatData, recentMessage, username);
-                                } else {
-                                    console.error('No such user!');
-                                    addChatToData(chatID, chatData, recentMessage, 'Unknown User');
-                                }
-                            }).catch((error) => {
-                                console.error('Error getting user document:', error);
-                                addChatToData(chatID, chatData, recentMessage, 'Error User');
-                            });
-                        }
+                                addChatToData(chatID, chatData, recentMessage, username);
+                            }
+                        }).catch((error) => {
+                            console.error('Error fetching user:', error);
+                        });
                     }
                 });
 
@@ -118,7 +115,7 @@ const ChatsTab = () => {
         });
     };
 
-    if (!loaded) {
+    if (!loaded || currentUserUID === null) {
         return (
             <View
                 style={{
@@ -140,17 +137,16 @@ const ChatsTab = () => {
                 keyExtractor={(item) => item.chatID}
                 renderItem={({ item }) => (
                     <TouchableOpacity
-                    onLongPress={()=>{console.log('hold')}}
                         onPress={() => handleOpenChat(item.chatID, item.username, item.recentMessage.from === currentUserUID ? item.recentMessage.to : item.recentMessage.from)}
                         style={styles.chatItem}
                     >
-                        <Ionicons name='person-circle' size={40} color={'#FF8c00'} />
+                        <Ionicons name='person-circle' size={35} color={'#FF8c00'} />
                         <View>
                             <Text style={styles.chatName}>
                                 {item.username}
                             </Text>
                             {item.recentMessage && (
-                                <Text style={styles.recentMessage}>{item.recentMessage.text}</Text>
+                                <Text numberOfLines={1} style={styles.recentMessage}>{item.recentMessage.text}</Text>
                             )}
                         </View>
                     </TouchableOpacity>
@@ -177,12 +173,12 @@ const styles = StyleSheet.create({
     },
     chatName: {
         color: '#FF8C00',
-        fontSize: 23,
+        fontSize: 18,
         fontWeight: '400',
         fontFamily: 'Outfit-Black-Medium',
     },
     recentMessage: {
-        fontSize: 15,
+        fontSize: 13,
         fontWeight: '400',
         fontFamily: 'Outfit-Black-Medium',
         color: '#888',

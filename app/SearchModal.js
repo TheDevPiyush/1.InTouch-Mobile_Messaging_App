@@ -73,7 +73,7 @@ const SearchModal = () => {
                 });
             }
             navigation.goBack();
-            router.push({ pathname: '/[chatid]', params: { username: item.username, chatID: chatID, searchedUserUID: searchedUserUID, currentUserUID: currentUserUID,} });
+            router.push({ pathname: '/[chatid]', params: { username: item.username, chatID: chatID, searchedUserUID: searchedUserUID, currentUserUID: currentUserUID, } });
 
         } catch (error) {
             console.error("Error checking or creating chat document: ", error);
@@ -91,7 +91,8 @@ const SearchModal = () => {
                     <TextInput
                         keyboardType='default'
                         returnKeyType='next'
-                        onChangeText={text => setSearch(text.toLowerCase())}
+                        onChangeText={text =>
+                            setSearch(text.toLowerCase().replace(/\s+/g, ''))}
                         onFocus={() => { setFocused("search") }}
                         style={styles.inputStyle}
                         value={search}

@@ -1,5 +1,5 @@
 {
-  "name": "chatapp",
+  "name": "InTouch",
   "version": "1.0.0",
   "main": "expo-router/entry",
   "scripts": {
@@ -13,12 +13,15 @@
     "@react-native-google-signin/google-signin": "^12.2.1",
     "@react-navigation/material-top-tabs": "^6.6.14",
     "@react-navigation/native": "^6.1.18",
+    "axios": "^1.7.3",
     "expo": "~51.0.24",
     "expo-application": "~5.9.1",
     "expo-auth-session": "~5.5.2",
     "expo-constants": "~16.0.2",
+    "expo-dev-client": "~4.0.22",
     "expo-font": "~12.0.9",
     "expo-linking": "~6.3.1",
+    "expo-notifications": "~0.28.15",
     "expo-random": "~14.0.1",
     "expo-router": "~3.5.20",
     "expo-splash-screen": "~0.27.5",
@@ -30,7 +33,8 @@
     "react-native-screens": "3.31.1",
     "react-native-tab-view": "^3.5.2",
     "undefined": "expo/vector-icons/AntDesign",
-    "uuid": "^10.0.0"
+    "uuid": "^10.0.0",
+    "expo-device": "~6.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

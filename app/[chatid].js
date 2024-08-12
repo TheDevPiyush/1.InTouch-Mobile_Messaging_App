@@ -11,24 +11,22 @@ import {
     ActivityIndicator
 } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import { SafeAreaView, SafeAreaInsetsContext } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import {
     doc,
     onSnapshot,
-    updateDoc,
-    arrayUnion,
     serverTimestamp,
     collection,
     query,
     orderBy,
-    addDoc
+    addDoc,
+    getDoc
 } from 'firebase/firestore';
-import { firestore } from '../firebaseConfig';
-import { Keyboard } from 'react-native'; // Import additional necessary components
+import { auth, firestore } from '../firebaseConfig';
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useFonts } from 'expo-font';
-import { v4 as uuidv4 } from 'uuid';
+import axios from 'axios';
 
 const Messages = () => {
 
@@ -104,13 +102,49 @@ const Messages = () => {
                 to: searchedUserUID,
                 text: input,
                 timestamp: serverTimestamp(),
-                fromUserName: username,
+                username: username,
             };
 
             const chatDocRef = doc(firestore, 'Chats', chatID);
             const messagesCollectionRef = collection(chatDocRef, 'Messages');
             setInput('');
             await addDoc(messagesCollectionRef, newMessage);
+
+            try {
+                const userDocRef = doc(firestore, 'Users', searchedUserUID);
+                const userDoc = await getDoc(userDocRef);
+                const CurrentUserDocRef = doc(firestore, 'Users', currentUserUID);
+                const CurrentUserDoc = await getDoc(CurrentUserDocRef);
+
+                if (userDoc.exists()) {
+                    const { pushToken } = userDoc.data();
+                    const { username } = CurrentUserDoc.data();
+
+                    if (pushToken) {
+                        const message = {
+                            to: pushToken,
+                            sound: 'default',
+                            title: `${username}`,
+                            body: `${input}`,
+                            data: { chatID, newMessage },
+                            priority: "high",
+                            channelId: "default",
+                            vibrate: true,
+                        };
+
+                        try {
+                            const response = await axios.post('https://exp.host/--/api/v2/push/send?useFcmV1=true', message, {
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                            });
+                        } catch (error) {}
+
+                    }
+                }
+            } catch (error) {
+                console.error('Error sending notification:', error);
+            }
 
         }
     };
@@ -226,12 +260,12 @@ const styles = StyleSheet.create({
     },
     sentText: {
         fontFamily: 'Outfit-Black-Medium',
-        fontSize: 16
+        fontSize: 15
     },
     receivedText: {
         color: 'white',
         fontFamily: 'Outfit-Black-Medium',
-        fontSize: 16
+        fontSize: 15
     }
 });
 

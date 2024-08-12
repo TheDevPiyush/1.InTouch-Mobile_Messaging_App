@@ -85,7 +85,7 @@ const Signup = () => {
                 email: email,
                 createdAt: serverTimestamp(),
                 lastLogin: serverTimestamp(),
-                uid : userCredential.user.uid
+                uid: userCredential.user.uid
             });
             setdisabled(false)
             setloading(false)
@@ -141,17 +141,17 @@ const Signup = () => {
                             <TextInput
                                 ref={usernameRef}
                                 keyboardType='default'
+                                autoCorrec={false}
                                 returnKeyType='next'
-                                onChangeText={text => {
-                                    const formattedText = text.toLowerCase().replace(/\s+/g, '');
-                                    setusername(formattedText);
-                                }}
-                                value={username}
-                                onFocus={() => { setFocused("username") }}
-                                onSubmitEditing={() => { emailRef.current.focus() }}
-                                style={styles.inputStyle}
-                                placeholder='username@69'
-                                placeholderTextColor='rgba(128, 128,128,0.6)'
+                                onChangeText={text =>
+                                    setusername(text.toLowerCase().replace(/\s+/g, ''))
+                                }
+                            value={username}
+                            onFocus={() => { setFocused("username") }}
+                            onSubmitEditing={() => { emailRef.current.focus() }}
+                            style={styles.inputStyle}
+                            placeholder='username@69'
+                            placeholderTextColor='rgba(128, 128,128,0.6)'
                             />
                         </View>
                         <Text style={styles.labelStyle}>Email</Text>

@@ -13,6 +13,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFonts } from 'expo-font';
 import { router } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ProfileTab = () => {
     const [fontsLoaded] = useFonts({
@@ -41,6 +42,7 @@ const ProfileTab = () => {
     };
 
     const handleLogout = () => {
+        AsyncStorage.setItem("LoggedIn", 'false')
         auth.signOut();
         router.replace('/');
     };

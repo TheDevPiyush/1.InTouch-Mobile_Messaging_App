@@ -6,15 +6,18 @@ import {
     Alert,
     ActivityIndicator
 } from 'react-native'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { useNavigation } from 'expo-router';
 import logo from '../assets/image.png'
-
-
+import * as Notifications from 'expo-notifications';
+import { doc, setDoc } from 'firebase/firestore';
+import * as Device from 'expo-device';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { firestore } from '../firebaseConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -34,20 +37,39 @@ const Login = () => {
     const emailRef = useRef();
     const passRef = useRef();
     const [loading, setloading] = useState(false)
-
+    const auth = getAuth()
+    const [isLoggedIn, setisLoggedIn] = useState(null)
 
     useEffect(() => {
         if (loaded || error) SplashScreen.hideAsync();
     }, [loaded, error]);
+
+    useLayoutEffect(() => { if (loaded) redirectUserIfLoggedIn() }, [loaded])
+
 
     useEffect(() => {
         if (email.trim() !== '' && password.trim() !== '') setdisabled(false)
         else setdisabled(true)
     }, [email, password])
 
-    if (!loaded && !error) return null;
 
-    const auth = getAuth()
+    useEffect(() => {
+        if (isLoggedIn) {
+            navigation.reset({ index: 0, routes: [{ name: "(tabs)" }] });
+        }
+        return () => setisLoggedIn(false)
+    }, [isLoggedIn])
+
+    const redirectUserIfLoggedIn = async () => {
+        try {
+            const loginInfo = await AsyncStorage.getItem("LoggedIn")
+            if (loginInfo === "true") {
+                setisLoggedIn(true)
+            }
+        } catch (error) {
+            Alert.alert('Something went wrong.', 'Log in details not found or expired. Please log in again.')
+        }
+    }
 
 
     const signInWithEmail = async () => {
@@ -55,8 +77,10 @@ const Login = () => {
             setdisabled(true)
             setloading(true)
             const userCredential = await signInWithEmailAndPassword(auth, email, password)
+            AsyncStorage.setItem('LoggedIn', 'true')
             setdisabled(false)
             setloading(false)
+            registerForPushNotificationsAsync()
             navigation.reset({ index: 0, routes: [{ name: "(tabs)" }] });
         } catch (error) {
             setdisabled(false)
@@ -64,9 +88,47 @@ const Login = () => {
             if (error.code === 'auth/invalid-credential') Alert.alert('Wrong Credentials', "Wrong email or password. Try again.")
             else if (error.code === 'auth/too-many-requests') Alert.alert('Too many attempts', "You've tried too many failed attempts. Try again after few minutes.")
             else if (error.code === 'auth/invalid-email') Alert.alert('Account not found', "There is no account registered with this email. Sign up to continue.")
-            else Alert.alert(`Something went wrong', 'Please try again. Something went wrong, we are working on it.`)
+            else { Alert.alert(`Something went wrong','`, 'We will try to fix this as soon as possible.') }
         }
     }
+
+    const storePushToken = async (token) => {
+        const userDocRef = doc(firestore, 'Users', auth.currentUser.uid);
+        await setDoc(userDocRef, { pushToken: token }, { merge: true });
+    };
+
+    const registerForPushNotificationsAsync = async () => {
+        if (Device.isDevice) {
+            const { status: existingStatus } = await Notifications.getPermissionsAsync();
+            let finalStatus = existingStatus;
+            if (existingStatus !== 'granted') {
+                const { status } = await Notifications.requestPermissionsAsync();
+                finalStatus = status;
+            }
+            if (finalStatus !== 'granted') {
+                alert('Failed to get push token for push notification!');
+                return;
+            }
+            const token = (await Notifications.getExpoPushTokenAsync()).data;
+            await storePushToken(token);
+
+            if (Platform.OS === 'android') {
+                Notifications.setNotificationChannelAsync('default', {
+                    name: 'default',
+                    importance: Notifications.AndroidImportance.MAX,
+                    vibrationPattern: [0, 250, 250, 250],
+                    lightColor: '#FF231F7C',
+                    sound: true,
+                });
+            }
+        } else {
+            alert('Must use physical device for Push Notifications', Device.isDevice);
+        }
+    };
+    Notifications.setNotificationHandler(null);
+
+    
+    if (!loaded && !error) return null;
 
     return (
         <SafeAreaView style={{
@@ -75,9 +137,7 @@ const Login = () => {
             <StatusBar barStyle='light-content' />
 
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} >
-                <ScrollView contentContainerStyle={{
-                    backgroundColor: "rgba(255, 0,0,0)", flexGrow: 1
-                }}>
+                <ScrollView overScrollMode='never' contentContainerStyle={{ flexGrow: 1 }}>
                     {/* Main View */}
                     <View style={{
                         marginTop: '8%', marginHorizontal: 15

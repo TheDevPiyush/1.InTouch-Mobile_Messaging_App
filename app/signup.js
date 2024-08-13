@@ -111,7 +111,7 @@ const Signup = () => {
             <StatusBar barStyle='light-content' />
 
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} >
-                <ScrollView overScrollMode='never' showsVerticalScrollIndicator={false} contentContainerStyle={{
+                <ScrollView keyboardShouldPersistTaps="handled" overScrollMode='never' showsVerticalScrollIndicator={false} contentContainerStyle={{
                     backgroundColor: "rgba(255, 0,0,0)", flexGrow: 1
                 }}>
                     {/* Main View */}
@@ -139,6 +139,7 @@ const Signup = () => {
                         <Text style={styles.labelStyle}>Username</Text>
                         <View style={[styles.inputContainer, focused === "username" && styles.focusInput]}>
                             <TextInput
+                                cursorColor={'#ff9301'}
                                 ref={usernameRef}
                                 keyboardType='default'
                                 autoCorrec={false}
@@ -146,17 +147,18 @@ const Signup = () => {
                                 onChangeText={text =>
                                     setusername(text.toLowerCase().replace(/\s+/g, ''))
                                 }
-                            value={username}
-                            onFocus={() => { setFocused("username") }}
-                            onSubmitEditing={() => { emailRef.current.focus() }}
-                            style={styles.inputStyle}
-                            placeholder='username@69'
-                            placeholderTextColor='rgba(128, 128,128,0.6)'
+                                value={username}
+                                onFocus={() => { setFocused("username") }}
+                                onSubmitEditing={() => { emailRef.current.focus() }}
+                                style={styles.inputStyle}
+                                placeholder='username@69'
+                                placeholderTextColor='rgba(128, 128,128,0.6)'
                             />
                         </View>
                         <Text style={styles.labelStyle}>Email</Text>
                         <View style={[styles.inputContainer, focused === "email" && styles.focusInput]}>
                             <TextInput
+                                cursorColor={'#ff9301'}
                                 ref={emailRef}
                                 onSubmitEditing={() => { passRef.current.focus() }}
                                 keyboardType='email-address'
@@ -171,6 +173,7 @@ const Signup = () => {
                         <Text style={styles.labelStyle}>Password</Text>
                         <View style={[styles.inputContainer, focused === "password" && styles.focusInput]}>
                             <TextInput
+                                cursorColor={'#ff9301'}
                                 ref={passRef}
                                 keyboardType='default'
                                 returnKeyType='next'

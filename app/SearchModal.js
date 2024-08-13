@@ -69,6 +69,8 @@ const SearchModal = () => {
             if (!chatDoc.exists()) {
                 await setDoc(chatDocRef, {
                     participants: [currentUserUID, searchedUserUID],
+                    currentUserUID: false,
+                    searchedUserUID: false,
                     createdAt: new Date(),
                 });
             }

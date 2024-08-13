@@ -127,7 +127,7 @@ const Login = () => {
     };
     Notifications.setNotificationHandler(null);
 
-    
+
     if (!loaded && !error) return null;
 
     return (
@@ -137,7 +137,7 @@ const Login = () => {
             <StatusBar barStyle='light-content' />
 
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} >
-                <ScrollView overScrollMode='never' contentContainerStyle={{ flexGrow: 1 }}>
+                <ScrollView overScrollMode='never' keyboardShouldPersistTaps="handled" contentContainerStyle={{ flexGrow: 1 }}>
                     {/* Main View */}
                     <View style={{
                         marginTop: '8%', marginHorizontal: 15
@@ -170,6 +170,8 @@ const Login = () => {
                                 styles.inputContainer, focused === "email"
                                 && styles.focusInput]}>
                             <TextInput
+                                cursorColor={'#ff9301'}
+
                                 ref={emailRef}
                                 onSubmitEditing={() => { passRef.current.focus() }}
                                 keyboardType='email-address'
@@ -184,6 +186,8 @@ const Login = () => {
                         <Text style={styles.labelStyle}>Password</Text>
                         <View style={[styles.inputContainer, focused === "password" && styles.focusInput]}>
                             <TextInput
+                                cursorColor={'#ff9301'}
+
                                 ref={passRef}
                                 keyboardType='default'
                                 returnKeyType='next'

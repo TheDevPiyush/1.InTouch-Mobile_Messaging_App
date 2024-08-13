@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { firestore, auth } from '../../firebaseConfig';
-import { collection, query, where, onSnapshot, orderBy, limit, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy, limit, doc, getDoc } from 'firebase/firestore';
 import { router, useNavigation } from 'expo-router';
 import { useFonts } from 'expo-font';
 import Ionicons from '@expo/vector-icons/Ionicons'
@@ -14,6 +14,7 @@ const ChatsTab = () => {
         'Outfit-Black-Bold': require('../../assets/Outfit-Bold.ttf'),
     });
     const [currentUserUID, setcurrentUserUID] = useState(null);
+    const [newMessage, setNewMessage] = useState(false);
 
     const navigation = useNavigation();
 
@@ -102,7 +103,7 @@ const ChatsTab = () => {
             recentMessage,
             username,
         };
-
+        setNewMessage(true)
         setChats((prevChats) => mergeChats(prevChats, [chatInfo]));
     };
 
@@ -113,6 +114,7 @@ const ChatsTab = () => {
             searchedUserUID,
             currentUserUID,
         });
+        setNewMessage(false)
     };
 
     if (!loaded || currentUserUID === null) {
@@ -135,20 +137,24 @@ const ChatsTab = () => {
             <FlatList
                 data={chats}
                 keyExtractor={(item) => item.chatID}
-                renderItem={({ item }) => (
+                renderItem={({ item, index }) => (
                     <TouchableOpacity
                         onPress={() => handleOpenChat(item.chatID, item.username, item.recentMessage.from === currentUserUID ? item.recentMessage.to : item.recentMessage.from)}
                         style={styles.chatItem}
                     >
                         <Ionicons name='person-circle' size={35} color={'#FF8c00'} />
-                        <View>
-                            <Text style={styles.chatName}>
-                                {item.username}
-                            </Text>
-                            {item.recentMessage && (
-                                <Text numberOfLines={1} style={styles.recentMessage}>{item.recentMessage.text}</Text>
-                            )}
+                        <View style={{ flex: 1 }}>
+                            <View>
+                                <Text style={styles.chatName}>
+                                    {item.username}
+                                </Text>
+                                {item.recentMessage && (
+                                    <Text numberOfLines={1} style={index === 0 && item.recentMessage.from !== currentUserUID && newMessage ? styles.newRecentMessage : styles.recentMessage}>{item.recentMessage.text}</Text>
+                                )}
+                            </View>
                         </View>
+                        {(index === 0 && item.recentMessage.from !== currentUserUID && newMessage) && <View style={styles.newRecentMessageIndicator}>
+                        </View>}
                     </TouchableOpacity>
                 )}
             />
@@ -173,15 +179,27 @@ const styles = StyleSheet.create({
     },
     chatName: {
         color: '#FF8C00',
-        fontSize: 18,
+        fontSize: 19,
         fontWeight: '400',
         fontFamily: 'Outfit-Black-Medium',
     },
     recentMessage: {
         fontSize: 13,
-        fontWeight: '400',
+        fontWeight: '900',
         fontFamily: 'Outfit-Black-Medium',
         color: '#888',
+    },
+    newRecentMessage: {
+        fontSize: 13,
+        fontWeight: '400',
+        fontFamily: 'Outfit-Black-Bold',
+        color: 'white',
+    },
+    newRecentMessageIndicator: {
+        height: 10,
+        width: 10,
+        borderRadius: 50,
+        backgroundColor: "#FF8C00"
     },
 });
 

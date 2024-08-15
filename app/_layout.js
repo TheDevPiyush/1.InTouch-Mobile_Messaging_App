@@ -29,7 +29,13 @@ const Layout = () => {
                     fontSize: 23,
                 },
                 headerTintColor: '#FF8C00',
-                headerTitleAlign: 'left'
+                headerBackButtonMenuEnabled: true,
+                headerBackVisible: true,
+                headerTitleAlign: 'center'
+            }} />
+            <Stack.Screen name='ProfilePicModal' options={{
+                headerShown: false,
+                presentation: 'modal',
             }} />
         </Stack>
     )

@@ -1,7 +1,6 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Tabs } from 'expo-router'
 import { useFonts } from 'expo-font';
-import AntDesign from '@expo/vector-icons/AntDesign';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Platform } from 'react-native';
 
@@ -11,7 +10,7 @@ const Layout = () => {
         'Outfit-Black-Medium': require('../../assets/Outfit-Medium.ttf'),
         'Outfit-Black-Bold': require('../../assets/Outfit-Bold.ttf'),
     });
-    const iconSize = 23
+    const iconSize = 25
     return (
         <Tabs screenOptions={{
             tabBarStyle: { backgroundColor: '#1f1f2d', borderWidth: 0, elevation: 0, shadowOpacity: 0 },
@@ -23,14 +22,16 @@ const Layout = () => {
         }} >
             <Tabs.Screen options={{
                 title: 'Chats',
-                tabBarIcon: ({ focused }) => (<AntDesign name="wechat" size={iconSize} color={focused ? '#FF8C00' : 'grey'} />),
+                tabBarIcon: ({ focused }) => (<Ionicons
+                    name={focused ? `chatbubble-ellipses` : 'chatbubble-ellipses-outline'}
+                    size={iconSize} color={focused ? '#FF8C00' : 'grey'} />),
                 tabBarActiveTintColor: '#FF8C00',
             }} name='ChatsTab' />
 
 
             <Tabs.Screen options={{
-                title: 'Search',
-                tabBarIcon: ({ focused }) => (<Ionicons name="search" size={iconSize} color={focused ? '#FF8C00' : 'grey'} />),
+                title: 'Add',
+                tabBarIcon: ({ focused }) => (<Ionicons name={focused ? "person-add" : "person-add-outline"} size={iconSize} color={focused ? '#FF8C00' : 'grey'} />),
                 tabBarActiveTintColor: '#FF8C00',
 
             }} name='SearchTab'
@@ -43,8 +44,8 @@ const Layout = () => {
             />
 
             <Tabs.Screen options={{
-                title: 'Settings',
-                tabBarIcon: ({ focused }) => (<Ionicons name="settings" size={iconSize} color={focused ? '#FF8C00' : 'grey'} />),
+                title: 'Profile',
+                tabBarIcon: ({ focused }) => (<Ionicons name={focused ? "person-circle" : "person-circle-outline"} size={iconSize} color={focused ? '#FF8C00' : 'grey'} />),
                 tabBarActiveTintColor: '#FF8C00',
             }} name='ProfileTab' />
         </Tabs >

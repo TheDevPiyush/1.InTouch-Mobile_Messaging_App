@@ -8,8 +8,7 @@ import {
     FlatList,
     TouchableOpacity,
     ActivityIndicator,
-    TouchableWithoutFeedback,
-    Dimensions
+    Dimensions,
 } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -24,15 +23,19 @@ import {
     addDoc,
     getDoc,
     updateDoc,
-    deleteDoc
+    deleteDoc,
+    limit
 } from 'firebase/firestore';
-import { auth, firestore } from '../firebaseConfig';
+import { firestore } from '../firebaseConfig';
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useFonts } from 'expo-font';
 import axios from 'axios';
 import OptionsMenu from './components/OptionsMenu';
 import * as Clipboard from 'expo-clipboard'
 import OptionsMenuOtherUser from './components/OptionsMenuOtherUser';
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import MessagesItem from './components/Messages';
+import CustomHeader from './components/CustomHeader ';
 const Messages = () => {
 
     const [loaded] = useFonts({
@@ -41,8 +44,7 @@ const Messages = () => {
         'Outfit-Black-Bold': require('../assets/Outfit-Bold.ttf'),
     });
 
-    const { username, chatID, searchedUserUID, currentUserUID } =
-        useLocalSearchParams();
+    const { username, chatID, searchedUserUID, currentUserUID, userpicture } = useLocalSearchParams();
     const navigation = useNavigation();
     const scrollRef = useRef(null);
     const [seenStatus, setSeenStatus] = useState(null);
@@ -67,8 +69,13 @@ const Messages = () => {
         }
     }, [loaded])
 
+
+
     useEffect(() => {
-        if (username) navigation.setOptions({ title: username });
+        if (username) navigation.setOptions({
+            headerTitle: username,
+            headerLeft: () => <CustomHeader userpicture={userpicture} />
+        });
     }, [navigation, username, loaded]);
 
     useEffect(() => {
@@ -125,7 +132,8 @@ const Messages = () => {
 
         const messagesQuery = query(
             messagesCollectionRef,
-            orderBy('timestamp', 'asc')
+            orderBy('timestamp', 'desc'),
+            limit(20)
         );
 
         const unsubscribe = onSnapshot(messagesQuery, (querySnapshot) => {
@@ -170,12 +178,12 @@ const Messages = () => {
                     if (pushToken) {
                         const message = {
                             to: pushToken,
-                            sound: 'default',
+                            sound: Platform.OS === "android" ? null : "default",
                             title: `${username}`,
                             body: `${input}`,
                             data: { chatID, newMessage },
                             priority: "high",
-                            channelId: "default",
+                            channelId: "messages",
                             vibrate: true,
                         };
 
@@ -252,97 +260,99 @@ const Messages = () => {
     }
 
     return (
-        <KeyboardAvoidingView
-            style={styles.container}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0} // Offset to handle the keyboard
-        >
+        <GestureHandlerRootView>
+            <KeyboardAvoidingView
+                style={styles.container}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0} // Offset to handle the keyboard
+            >
 
-            <SafeAreaView style={[styles.container, { paddingTop: 0, marginTop: 0 }]}>
-                <FlatList
-                    keyboardShouldPersistTaps="handled"
-                    ref={scrollRef}
-                    overScrollMode="never"
-                    style={styles.flatlist}
-                    data={(messages || []).sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0))}
-                    renderItem={({ item, index }) => (
-                        <TouchableOpacity activeOpacity={0.75} onLongPress={(e) => handleLongPress(e, item)}>
-                            <View
-                                key={index}
-                                style={
-                                    item.from === currentUserUID
-                                        ? styles.sentMessage
-                                        : styles.receivedMessage
-                                }
-                            >
-                                {item.replyTo !== null ?
-                                    <View>
-                                        <Text style={item.from === currentUserUID
-                                            ? styles.sentReplyText
-                                            : styles.receivedReplyText}> {item.replyTo} </Text>
-                                        <Text style={item.from === currentUserUID
-                                            ? styles.sentText
-                                            : styles.receivedText}>{item.text || ''}</Text>
-                                    </View>
-                                    :
-                                    <Text style={item.from === currentUserUID
-                                        ? styles.sentText
-                                        : styles.receivedText}>{item.text || ''}
-                                    </Text>
-                                }
+                <SafeAreaView style={[styles.container, { paddingTop: 0, marginTop: 0 }]}>
+                    <FlatList
+                        keyboardShouldPersistTaps="handled"
+                        ref={scrollRef}
+                        overScrollMode="never"
+                        style={styles.flatlist}
+                        data={(messages || []).sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0))}
+                        renderItem={({ item, index }) => (
+                            <View style={{}}>
+                                <MessagesItem
+                                    item={item}
+                                    index={index}
+                                    handleLongPress={handleLongPress}
+                                    currentUserUID={currentUserUID}
+                                    setReplyTo={(item) => { setReply(item) }}
+                                    scrollRef={scrollRef}
+                                />
                             </View>
-                        </TouchableOpacity>
-                    )}
-                    keyExtractor={(item, index) => item.timestamp}
-                    onContentSizeChange={() => scrollRef.current?.scrollToEnd()
+                        )}
+                        keyExtractor={(item, index) => index}
+                        onContentSizeChange={() => scrollRef.current?.scrollToEnd()
+                        }
+                        onLayout={() => scrollRef.current?.scrollToEnd({ animated: true })}
+                    />
+                    {seenStatus &&
+                        <View style={{ flexDirection: 'row-reverse', marginHorizontal: 10, marginVertical: 2 }}>
+                            <Text style={{ color: 'rgba(255,255,255,0.15)', fontFamily: 'Outfit-Black-Regular' }}> InTouch with you now... </Text>
+                        </View>
                     }
-                    onLayout={() => scrollRef.current?.scrollToEnd({ animated: true })}
-                />
-                {seenStatus &&
-                    <View style={{ flexDirection: 'row-reverse', marginHorizontal: 10, marginVertical: 2 }}>
-                        <Text style={{ color: 'rgba(255,255,255,0.15)', fontFamily: 'Outfit-Black-Regular' }}> InTouch with you now... </Text>
-                    </View>
-                }
-                {reply &&
-                    <View style={styles.replyContainer}>
-                        <Text numberOfLines={1} style={styles.replyText}>
-                            {reply}
-                        </Text>
-                        <TouchableOpacity onPress={() => { setReply(null) }}>
-                            <Ionicons name='close-outline' style={{ padding: 10 }} size={17} color={'rgba(128,128,128,0.8)'} />
+                    {reply &&
+                        <View style={{ marginHorizontal: 10, borderTopColor: 'rgba(128,128,128,0.3)', borderTopWidth: 1 }}>
+
+                            <View style={styles.replyContainer}>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={{
+                                        color: 'rgba(128,128,128,0.7)',
+                                        fontSize: 12,
+                                        fontFamily: 'Outfit-Black-Medium',
+                                        width: 'auto',
+                                    }}>
+                                        Reply to
+                                    </Text>
+                                    <Text numberOfLines={1} style={styles.replyText}>
+                                        {reply}
+                                    </Text>
+                                </View>
+
+                                <TouchableOpacity onPress={() => { setReply(null) }}>
+                                    <Ionicons name='close-outline' style={{ paddingHorizontal: 0 }} size={17} color={'#ff9301'} />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                    }
+                    <View style={styles.inputContainer}>
+                        <TextInput
+                            cursorColor={'#ff9301'}
+                            ref={inputRef}
+                            style={styles.input}
+                            placeholder="Type a message..."
+                            value={input}
+                            onChangeText={setInput}
+                            placeholderTextColor={'rgba(128,128,128,0.6)'}
+                            onSubmitEditing={sendMessage}
+                            returnKeyType="send"
+                        />
+                        <TouchableOpacity onPress={sendMessage}>
+                            <Ionicons name='send' size={27} color={'#FF8C00'} />
                         </TouchableOpacity>
-                    </View>}
-                <View style={styles.inputContainer}>
-                    <TextInput
-                        cursorColor={'#ff9301'}
-                        ref={inputRef}
-                        style={styles.input}
-                        placeholder="Type a message..."
-                        value={input}
-                        onChangeText={setInput}
-                        placeholderTextColor={'rgba(128,128,128,0.6)'}
-                        onSubmitEditing={sendMessage}
-                        returnKeyType="send"
-                    />
-                    <TouchableOpacity onPress={sendMessage}>
-                        <Ionicons name='send' size={27} color={'#FF8C00'} />
-                    </TouchableOpacity>
 
-                    <OptionsMenu
-                        visible={menuVisible}
-                        onClose={() => setMenuVisible(false)}
-                        position={menuPosition}
-                        onOptionSelect={handleOptionSelect}
-                    />
+                        <OptionsMenu
+                            visible={menuVisible}
+                            onClose={() => setMenuVisible(false)}
+                            position={menuPosition}
+                            onOptionSelect={handleOptionSelect}
+                        />
 
-                    <OptionsMenuOtherUser
-                        visible={othermenuVisible}
-                        onClose={() => setotherMenuVisible(false)}
-                        position={menuPosition}
-                        onOptionSelect={handleOptionSelect} />
-                </View>
-            </SafeAreaView>
-        </KeyboardAvoidingView >
+                        <OptionsMenuOtherUser
+                            visible={othermenuVisible}
+                            onClose={() => setotherMenuVisible(false)}
+                            position={menuPosition}
+                            onOptionSelect={handleOptionSelect} />
+                    </View>
+                </SafeAreaView>
+            </KeyboardAvoidingView >
+        </GestureHandlerRootView>
     );
 };
 const styles = StyleSheet.create({
@@ -412,18 +422,16 @@ const styles = StyleSheet.create({
     replyText: {
         fontFamily: 'Outfit-Black-Regular',
         fontSize: 13,
-        fontStyle: 'italic',
-        color: 'rgba(128,128,128,0.6)',
-        width: '90%'
+        color: 'rgba(255,255,255,0.7)',
+        width: '100%',
     },
     replyContainer: {
-        backgroundColor: 'rgba(0,0,0,0.1)',
-        marginHorizontal: 8,
         width: '100%',
-        paddingHorizontal: 7,
+        justifyContent: 'space-between',
+        borderRadius: 6,
+        paddingHorizontal: 3,
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between'
     }
 });
 

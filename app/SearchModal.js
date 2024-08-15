@@ -1,4 +1,4 @@
-import { View, Text, TextInput, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { useFonts } from 'expo-font';
 import { collection, query, where, getDocs, startAt, endAt, setDoc, doc, getDoc } from "firebase/firestore";
@@ -69,13 +69,11 @@ const SearchModal = () => {
             if (!chatDoc.exists()) {
                 await setDoc(chatDocRef, {
                     participants: [currentUserUID, searchedUserUID],
-                    currentUserUID: false,
-                    searchedUserUID: false,
                     createdAt: new Date(),
                 });
             }
             navigation.goBack();
-            router.push({ pathname: '/[chatid]', params: { username: item.username, chatID: chatID, searchedUserUID: searchedUserUID, currentUserUID: currentUserUID, } });
+            router.push({ pathname: '/[chatid]', params: { username: item.username, chatID: chatID, searchedUserUID: searchedUserUID, currentUserUID: currentUserUID, userpicture :  item.profilePicUrl} });
 
         } catch (error) {
             console.error("Error checking or creating chat document: ", error);
@@ -85,12 +83,13 @@ const SearchModal = () => {
     return (
         <View style={styles.container}>
             <View>
-                <Text style={{ marginVertical: 10, fontSize: 20, color: 'rgba(128,128,128,0.6)' }}>Search a friend</Text>
+                <Text style={{ marginVertical: 10, fontSize: 18, color: 'rgba(128,128,128,0.6)' }}>Search a friend</Text>
                 <View
                     style={[
                         styles.inputContainer, focused === "search"
                         && styles.focusInput]}>
                     <TextInput
+                    cursorColor={'#FF8C00'}
                         keyboardType='default'
                         returnKeyType='next'
                         onChangeText={text =>
@@ -113,7 +112,10 @@ const SearchModal = () => {
                     renderItem={({ item }) => (
                         <View style={styles.searchItem} >
                             <TouchableOpacity onPress={() => handleUserSelect(item)} style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                <Ionicons name='person' size={20} color='#FF8C00' />
+                                {item.profilePicUrl ?
+                                    <Image style={{ width: 45, height: 45, borderRadius: 50 }} source={{ uri: item.profilePicUrl }} /> :
+                                    <Ionicons name='person-circle' size={35} color={'#FF8c00'} />
+                                }
                                 <Text style={styles.user}>{item.username}</Text>
                             </TouchableOpacity>
                         </View>
@@ -142,10 +144,9 @@ const styles = StyleSheet.create({
         height: 55,
         backgroundColor: "#1f1f2d",
         borderRadius: 10,
-        marginVertical: 5
     },
     inputStyle: {
-        fontSize: 20,
+        fontSize: 18,
         padding: 12, width: '100%', height: '100%', color: 'white',
         fontFamily: 'Outfit-Black-Medium'
     },

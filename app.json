@@ -2,36 +2,44 @@
   "expo": {
     "name": "InTouch",
     "slug": "InTouch",
-    "scheme": "InTouch",
+    "scheme": "intouch",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/image.png",
-    "userInterfaceStyle": "light",
+    "icon": "./assets/logo-no-background.png",
+    "userInterfaceStyle": "dark",
     "splash": {
-      "image": "./assets/image.png",
+      "image": "./assets/logo-no-background.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#171722"
     },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.thedevpiyush.InTouch",
-      "buildNumber": "1.0.0",
-      "distribution": "internal"
+      "buildNumber": "1.0.0"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/image.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/logo-no-background.png",
+        "backgroundColor": "#171722"
       },
       "package": "com.thedevpiyush.InTouch",
-      "googleServicesFile": "./android/app/google-services.json"
+      "versionCode": 1,
+      "googleServicesFile": "./app/google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-router",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/logo-no-background.png",
+          "color": "#171722",
+          "sounds": []
+        }
+      ]
     ],
     "extra": {
       "router": {

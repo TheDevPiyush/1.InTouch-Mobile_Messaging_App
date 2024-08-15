@@ -4,7 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { GestureHandlerRootView, TouchableOpacity } from 'react-native-gesture-handler';
 import { useFonts } from 'expo-font';
 import { router } from 'expo-router';
-const CustomHeader = ({ username, userpicture }) => {
+const CustomHeader = ({ userpicture }) => {
 
     const [loaded] = useFonts({
         'Outfit-Black-Regular': require('../../assets/Outfit-Regular.ttf'),
@@ -16,11 +16,15 @@ const CustomHeader = ({ username, userpicture }) => {
 
 
     useEffect(() => {
-        setPic(userpicture.replace('profile_pictures/', 'profile_pictures%2F'))
+        if (userpicture !== "undefined" && userpicture !== undefined) {
+            setPic(userpicture.replace('profile_pictures/', 'profile_pictures%2F'))
+        }
     }, [userpicture])
 
     const openProfilePicModal = () => {
-        router.push({ pathname: '/ProfilePicModal', params: { picUrl: pic } })
+        if (pic && pic !== "undefined") {
+            router.push({ pathname: '/ProfilePicModal', params: { picUrl: pic } })
+        }
     }
 
     return (

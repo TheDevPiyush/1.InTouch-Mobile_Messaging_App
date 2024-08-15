@@ -1,0 +1,39 @@
+InTouch Private Messaging App Policy
+Last Updated: [Insert Date]
+
+Welcome to InTouch, your secure and private messaging platform. We value your privacy and the safety of your personal information. Please take a moment to read through our app policy, which outlines the rules and guidelines for using the InTouch app.
+
+1. Privacy and Data Security
+Data Collection and Usage: InTouch collects minimal user data. The data collected includes user profile information (such as username, email, and profile picture), messaging data, and device information for improving the app experience. Your data is encrypted and stored securely, and it is never sold or shared with third parties without your explicit consent.
+
+Personal Data Protection: All private messages are end-to-end encrypted. This means that only you and the person you’re communicating with can read the messages. No third party, including InTouch, has access to your messages.
+
+Access to Device Features: InTouch requests access to certain device features, such as the camera for taking profile pictures and the microphone for voice messages. These permissions are requested only when needed and are fully transparent to the user.
+
+Account Security: Users are responsible for maintaining the confidentiality of their account credentials. We strongly recommend using strong, unique passwords and enabling additional security features like two-factor authentication.
+
+2. Content and User Conduct
+Prohibited Content: InTouch prohibits users from sharing or transmitting content that is illegal, offensive, abusive, or violates the rights of others. This includes, but is not limited to:
+
+Hate speech, violence, and harassment.
+Adult content or sexually explicit material.
+Misinformation or deceptive practices.
+Copyrighted material without authorization.
+User Reporting and Moderation: Users can report inappropriate content or behavior within the app. InTouch reserves the right to investigate and take action, including content removal, account suspension, or banning users found violating our policies.
+
+3. Child Safety
+Age Restrictions: InTouch is designed for users aged 13 years and older. We do not knowingly collect or store personal information from children under 13. If we become aware of such data collection, it will be promptly deleted.
+4. Advertising and Monetization
+Ad-Free Experience: InTouch does not show any advertisements or engage in monetization strategies that involve selling user data. The app is focused solely on providing a seamless messaging experience.
+5. User-Generated Content
+Responsibility of Users: Users are fully responsible for the content they generate and share via the InTouch platform. By using InTouch, users agree not to engage in activities that violate the rights of others or breach community guidelines.
+6. Compliance with Laws and Regulations
+InTouch complies with all relevant local and international laws regarding user data protection, privacy, and content distribution.
+
+We regularly review and update our practices to remain compliant with Google Play Developer Program Policies and applicable data protection regulations such as GDPR and CCPA.
+
+7. Changes to This Policy
+InTouch reserves the right to update this policy from time to time. Users will be notified of any significant changes via in-app notifications or email. Continued use of the app following the changes constitutes acceptance of the updated policy.
+
+8. Contact Us
+If you have any questions or concerns regarding this policy, please contact us at [your email address].

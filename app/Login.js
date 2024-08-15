@@ -58,18 +58,20 @@ const Login = () => {
         if (isLoggedIn) {
             navigation.reset({ index: 0, routes: [{ name: "(tabs)" }] });
         }
-        return () => setisLoggedIn(false)
+        return () => {
+            setisLoggedIn(false)
+            setloading(false)
+            setdisabled(false)
+        }
     }, [isLoggedIn])
 
     const redirectUserIfLoggedIn = async () => {
         try {
-            setloading(true)
-            setdisabled(true)
             const loginInfo = await AsyncStorage.getItem("LoggedIn")
             if (loginInfo === "true") {
-                setisLoggedIn(true)
                 setloading(true)
                 setdisabled(true)
+                setisLoggedIn(true)
             }
         } catch (error) {
             Alert.alert('Something went wrong.', 'Log in details not found or expired. Please log in again.')

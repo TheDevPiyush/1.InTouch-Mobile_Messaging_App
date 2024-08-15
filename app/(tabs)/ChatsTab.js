@@ -19,6 +19,7 @@ const ChatsTab = () => {
     const [newMessage, setNewMessage] = useState(false);
 
     const [updateMsg, setUpdateMsg] = useState(null)
+    const [loadingMsg, setLoadingMessage] = useState(false)
 
     const navigation = useNavigation();
 
@@ -38,6 +39,7 @@ const ChatsTab = () => {
 
     useEffect(() => {
         if (!loaded) return null;
+        setLoadingMessage(true)
 
         const chatsCollectionRef = collection(firestore, 'Chats');
 
@@ -75,7 +77,12 @@ const ChatsTab = () => {
                                 }
                             })
                             .catch((error) => {
+                                setLoadingMessage(false)
+
                             });
+                    }
+                    else {
+                        setLoadingMessage(false)
                     }
                 });
 
@@ -83,7 +90,12 @@ const ChatsTab = () => {
                 showUpdateNotice()
 
             }
+            setTimeout(() => {
+                setLoadingMessage(false)
+            }, 300);
+
         });
+
 
         return () => {
             unsubscribe();
@@ -146,6 +158,8 @@ const ChatsTab = () => {
         };
         setNewMessage(true)
         setChats((prevChats) => mergeChats(prevChats, [chatInfo]));
+        setLoadingMessage(false)
+
     };
 
     const handleOpenChat = (chatID, username, searchedUserUID, userpicture) => {
@@ -177,63 +191,94 @@ const ChatsTab = () => {
     return (
         <RootSiblingParent>
             <View style={styles.container}>
-                {chats.length > 0 ? <FlatList
-                    data={chats}
-                    keyExtractor={(item) => item.chatID}
-                    renderItem={({ item, index }) => (
-                        <TouchableOpacity
-                            onPress={() => handleOpenChat(item.chatID, item.username, item.recentMessage.from === currentUserUID ? item.recentMessage.to : item.recentMessage.from, item.userpicture)}
-                            style={styles.chatItem}
-                        >
-                            {item.userpicture ?
-                                <Image style={{ width: 48, height: 48, borderRadius: 50 }} source={{ uri: item.userpicture }} /> :
-                                <Ionicons name='person-circle' size={35} color={'#FF8c00'} />
-                            }
-                            <View style={{ flex: 1 }}>
-                                <View>
-                                    <Text style={styles.chatName}>
-                                        {item.username}
-                                    </Text>
-                                    {item.recentMessage && (
-                                        <Text numberOfLines={1} style={index === 0 && item.recentMessage.from !== currentUserUID && newMessage ? styles.newRecentMessage : styles.recentMessage}>{item.recentMessage.text}</Text>
+                {loadingMsg ? (
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                        <ActivityIndicator size="large" color="#FF8C00" />
+                    </View>
+                ) : (
+                    chats.length > 0 ? (
+                        <FlatList
+                            data={chats}
+                            keyExtractor={(item) => item.chatID}
+                            renderItem={({ item, index }) => (
+                                <TouchableOpacity
+                                    onPress={() => handleOpenChat(
+                                        item.chatID,
+                                        item.username,
+                                        item.recentMessage.from === currentUserUID
+                                            ? item.recentMessage.to
+                                            : item.recentMessage.from,
+                                        item.userpicture
                                     )}
+                                    style={styles.chatItem}
+                                >
+                                    {item.userpicture ? (
+                                        <Image style={{ width: 48, height: 48, borderRadius: 50 }} source={{ uri: item.userpicture }} />
+                                    ) : (
+                                        <Ionicons name='person-circle' size={35} color={'#FF8c00'} />
+                                    )}
+                                    <View style={{ flex: 1 }}>
+                                        <View>
+                                            <Text style={styles.chatName}>
+                                                {item.username}
+                                            </Text>
+                                            {item.recentMessage && (
+                                                <Text
+                                                    numberOfLines={1}
+                                                    style={index === 0 && item.recentMessage.from !== currentUserUID && newMessage
+                                                        ? styles.newRecentMessage
+                                                        : styles.recentMessage}
+                                                >
+                                                    {item.recentMessage.text}
+                                                </Text>
+                                            )}
+                                        </View>
+                                    </View>
+                                    {(index === 0 && item.recentMessage.from !== currentUserUID && newMessage) && (
+                                        <View style={styles.newRecentMessageIndicator} />
+                                    )}
+                                </TouchableOpacity>
+                            )}
+                        />
+                    ) : (
+                        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                            <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+                                <Text
+                                    style={{
+                                        textAlign: 'center',
+                                        color: 'rgba(255,255,255,0.6)',
+                                        fontFamily: 'Outfit-Black-Medium',
+                                        fontSize: 13,
+                                    }}
+                                >
+                                    When you start conversations with people, they will show up here..
+                                </Text>
+                                <View style={{ flexDirection: 'row', gap: 5 }}>
+                                    <Text
+                                        style={{
+                                            textAlign: 'center',
+                                            color: '#FF8C00',
+                                            fontFamily: 'Outfit-Black-Medium',
+                                            fontSize: 15,
+                                        }}
+                                    >
+                                        To get started go to
+                                    </Text>
+                                    <Ionicons name='person-add-outline' size={17} color={'#FF8C00'} />
                                 </View>
                             </View>
-                            {(index === 0 && item.recentMessage.from !== currentUserUID && newMessage) && <View style={styles.newRecentMessageIndicator}>
-                            </View>}
-                        </TouchableOpacity>
-                    )}
-                />
-                    :
-                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                        <Text style={{
-                            textAlign: 'center', color: 'rgba(255,255,255,0.6)',
-                            fontFamily: 'Outfit-Black-Medium',
-                            fontSize: 13
-
-                        }}> When you start conversations with people, they will show up here.. </Text>
-                        <View style={{ flexDirection: 'row', gap: 5 }}>
-                            <Text style={{
-                                textAlign: 'center', color: '#FF8C00',
-                                fontFamily: 'Outfit-Black-Medium',
-                                fontSize: 15
-
-                            }}>
-                                To get started go to
-                            </Text>
-
-                            <Ionicons name='person-add-outline' size={17} color={'#FF8C00'} />
                         </View>
-                    </View>
-                }
+                    )
+                )}
             </View>
-            {updateMsg &&
+            {updateMsg && (
                 <View style={styles.customMessage}>
                     <Text style={styles.customMessageText}>
                         {updateMsg}
                     </Text>
-                </View>}
-        </RootSiblingParent>
+                </View>)}
+
+        </RootSiblingParent >
     );
 };
 

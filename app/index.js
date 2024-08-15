@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import Login from './Login'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import * as Notifications from 'expo-notifications';

@@ -193,7 +193,7 @@ const Messages = () => {
                                     'Content-Type': 'application/json',
                                 },
                             });
-                        } catch (error) { }
+                        } catch (error) { console.log(error) }
 
                     }
                 }

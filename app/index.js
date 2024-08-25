@@ -1,8 +1,8 @@
 import React from 'react'
 import Login from './Login'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
-import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+import * as Notifications from 'expo-notifications';
 const index = () => {
 
     if (Platform.OS === 'android') {

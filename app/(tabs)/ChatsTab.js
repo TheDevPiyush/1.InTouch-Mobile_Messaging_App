@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, Image, Alert, Platform } from 'react-native';
 import { firestore, auth } from '../../firebaseConfig';
-import { collection, query, where, onSnapshot, orderBy, limit, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy, limit, doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { useNavigation } from 'expo-router';
 import { useFonts } from 'expo-font';
 import Ionicons from '@expo/vector-icons/Ionicons'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RootSiblingParent } from 'react-native-root-siblings';
-
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
+import * as Linking from 'expo-linking';
+import Constants from 'expo-constants'
 const ChatsTab = () => {
     const [chats, setChats] = useState([]);
     const [loaded] = useFonts({
@@ -20,13 +23,14 @@ const ChatsTab = () => {
 
     const [updateMsg, setUpdateMsg] = useState(null)
     const [loadingMsg, setLoadingMessage] = useState(false)
-
     const navigation = useNavigation();
+
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((user) => {
             if (user.uid) {
                 setcurrentUserUID(user.uid)
+
             }
             else {
                 AsyncStorage.setItem("LoggedIn", 'false').catch();
@@ -37,8 +41,10 @@ const ChatsTab = () => {
         return () => unsubscribe()
     }, [])
 
+
     useEffect(() => {
         if (!loaded) return null;
+        registerForPushNotificationsAsync();
         setLoadingMessage(true)
 
         const chatsCollectionRef = collection(firestore, 'Chats');
@@ -111,6 +117,52 @@ const ChatsTab = () => {
         }
     }, [updateMsg])
 
+    const registerForPushNotificationsAsync = async () => {
+        if (Device.isDevice) {
+            try {
+                const { status: existingStatus } = await Notifications.getPermissionsAsync();
+                let finalStatus = existingStatus;
+                if (existingStatus !== 'granted') {
+                    const { status } = await Notifications.requestPermissionsAsync();
+                    finalStatus = status;
+                }
+                if (finalStatus !== 'granted') {
+                    Alert.alert('Notifications Permission Denied', 'You won\'t receive notifications for your messages. Please Allow in settings.', [
+                        {
+                            text: 'Open Settings',
+                            onPress: () => { Alert.alert('Restart Required', 'You need to restart the app after allowing the permission.', [{ text: 'Proceed', onPress: () => { Linking.openSettings(); }, style: 'default' }]) },
+                            style: "default"
+                        },
+                        {
+                            text: 'Ok',
+                            onPress: () => { console.log('cancel') },
+                            style: "cancel"
+                        }
+                    ]);
+                    return
+                }
+
+                const token = (await Notifications.getExpoPushTokenAsync({
+                    projectId: "ca1320e9-02a4-4fc0-9ae6-0f92c92b0f0f",
+                })).data;
+                await storePushToken(token);
+            }
+            catch (error) {
+                Alert.alert('Error in notifications', error.message)
+            }
+
+        } else {
+            alert('Must use physical device for Push Notifications', Device.isDevice);
+        }
+    };
+    Notifications.setNotificationHandler({});
+
+    const storePushToken = async (token) => {
+        const userDocRef = doc(firestore, 'Users', auth.currentUser.uid);
+        await setDoc(userDocRef, { pushToken: token === undefined ? "" : token }, { merge: true });
+
+    };
+
     const showUpdateNotice = async () => {
         try {
             // For Future Me : update this number everytime to notify user that there is a new update in the app.
@@ -173,6 +225,11 @@ const ChatsTab = () => {
         setNewMessage(false)
     };
 
+    const deleteChat = async (chatID) => {
+        const docRef = doc(firestore, 'Chats', chatID);
+        await deleteDoc(docRef)
+    }
+
     if (!loaded || currentUserUID === null) {
         return (
             <View
@@ -190,6 +247,7 @@ const ChatsTab = () => {
 
     return (
         <RootSiblingParent>
+
             <View style={styles.container}>
                 {loadingMsg ? (
                     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -202,6 +260,7 @@ const ChatsTab = () => {
                             keyExtractor={(item) => item.chatID}
                             renderItem={({ item, index }) => (
                                 <TouchableOpacity
+                                    onLongPress={() => deleteChat(item.chatID)}
                                     onPress={() => handleOpenChat(
                                         item.chatID,
                                         item.username,
@@ -215,7 +274,7 @@ const ChatsTab = () => {
                                     {item.userpicture ? (
                                         <Image style={{ width: 48, height: 48, borderRadius: 50 }} source={{ uri: item.userpicture }} />
                                     ) : (
-                                        <Ionicons name='person-circle' size={35} color={'#FF8c00'} />
+                                        <Ionicons name='person-circle' size={48} color={'#FF8c00'} />
                                     )}
                                     <View style={{ flex: 1 }}>
                                         <View>

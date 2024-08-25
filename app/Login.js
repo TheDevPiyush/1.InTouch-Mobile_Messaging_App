@@ -74,6 +74,7 @@ const Login = () => {
                 setisLoggedIn(true)
             }
         } catch (error) {
+            console.log(error)
             Alert.alert('Something went wrong.', 'Log in details not found or expired. Please log in again.')
         }
     }
@@ -87,7 +88,6 @@ const Login = () => {
             AsyncStorage.setItem('LoggedIn', 'true')
             setdisabled(false)
             setloading(false)
-            registerForPushNotificationsAsync()
             navigation.reset({ index: 0, routes: [{ name: "(tabs)" }] });
         } catch (error) {
             setdisabled(false)
@@ -95,37 +95,12 @@ const Login = () => {
             if (error.code === 'auth/invalid-credential') Alert.alert('Wrong Credentials', "Wrong email or password. Try again.")
             else if (error.code === 'auth/too-many-requests') Alert.alert('Too many attempts', "You've tried too many failed attempts. Try again after few minutes.")
             else if (error.code === 'auth/invalid-email') Alert.alert('Account not found', "There is no account registered with this email. Sign up to continue.")
-            else { Alert.alert(`Something went wrong','`, 'We will try to fix this as soon as possible.') }
+            else {
+                Alert.alert(`Something went wrong`, `We will try to fix this as soon as possible. Error Code - "${error.code}"`);
+                console.log(error)
+            }
         }
     }
-
-    const storePushToken = async (token) => {
-        const userDocRef = doc(firestore, 'Users', auth.currentUser.uid);
-        await setDoc(userDocRef, { pushToken: token }, { merge: true });
-    };
-
-    const registerForPushNotificationsAsync = async () => {
-        if (Device.isDevice) {
-            const { status: existingStatus } = await Notifications.getPermissionsAsync();
-            let finalStatus = existingStatus;
-            if (existingStatus !== 'granted') {
-                const { status } = await Notifications.requestPermissionsAsync();
-                finalStatus = status;
-            }
-            if (finalStatus !== 'granted') {
-                alert('Failed to get push token for push notification!');
-                return;
-            }
-            const token = (await Notifications.getExpoPushTokenAsync()).data;
-            await storePushToken(token);
-
-        } else {
-            alert('Must use physical device for Push Notifications', Device.isDevice);
-        }
-    };
-    Notifications.setNotificationHandler({
-    });;
-
 
     if (!loaded && !error) return null;
 

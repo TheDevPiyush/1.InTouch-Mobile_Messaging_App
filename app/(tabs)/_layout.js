@@ -44,8 +44,8 @@ const Layout = () => {
             />
 
             <Tabs.Screen options={{
-                title: 'Profile',
-                tabBarIcon: ({ focused }) => (<Ionicons name={focused ? "person-circle" : "person-circle-outline"} size={iconSize} color={focused ? '#FF8C00' : 'grey'} />),
+                title: 'Settings',
+                tabBarIcon: ({ focused }) => (<Ionicons name={focused ? "settings-sharp" : "settings-outline"} size={iconSize} color={focused ? '#FF8C00' : 'grey'} />),
                 tabBarActiveTintColor: '#FF8C00',
             }} name='ProfileTab' />
         </Tabs >

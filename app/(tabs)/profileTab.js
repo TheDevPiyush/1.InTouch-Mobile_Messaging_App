@@ -7,6 +7,7 @@ import {
     ActivityIndicator,
     Image,
     Alert,
+    Linking,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { auth, firestore } from '../../firebaseConfig';
@@ -19,7 +20,6 @@ import * as ImagePicker from 'expo-image-picker';
 import firebase from 'firebase/app';
 import 'firebase/storage';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-
 
 const ProfileTab = () => {
     const [fontsLoaded] = useFonts({
@@ -127,6 +127,15 @@ const ProfileTab = () => {
         }
     };
 
+    const openEmail = () => {
+        const email = 'piyushdev.developer@gmail.com';
+        const subject = 'InTouch Contact Support';
+        const body = 'Please type your message here..';
+        const url = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+        Linking.openURL(url).catch((err) => Alert.alert('Mail couldn\'t open', 'contact here : piyushdev.developer@gmail.com'));
+    };
+
     if (!fontsLoaded) {
         return (
             <View
@@ -177,15 +186,27 @@ const ProfileTab = () => {
 
                 <Text style={styles.headingText}>InTouch registered email</Text>
                 <View style={styles.containerView}>
-                    <Ionicons name="mail" size={25} color="#FF8C00" />
+                    <Ionicons name="mail-open-outline" size={25} color="white" />
                     <Text style={styles.text}>{email}</Text>
                 </View>
 
                 <Text style={styles.headingText}>InTouch unique User ID</Text>
                 <View style={styles.containerView}>
-                    <Ionicons name="key" size={25} color="#FF8C00" />
+                    <Ionicons name="key-outline" size={25} color="white" />
                     <Text style={styles.text}>{uid}</Text>
                 </View>
+                <Text style={styles.headingText}>What is InTouch?</Text>
+                <View style={styles.containerView}>
+                    <Ionicons name="information-circle-outline" size={25} color="white" />
+                    <Text style={styles.text}>Stay connected with friends and family through private, end-to-end encrypted conversations. Your chats are secure, and your data is never shared. Connect without the need to exchange phone numbers or social media accounts—just a simple and safe way to chat. Enjoy a clean, user-friendly interface that makes messaging easy and hassle-free.</Text>
+                </View>
+
+                <Text style={styles.headingText}>If you have any concerns regarding InTouch, feel free to reach out to me.</Text>
+                <TouchableOpacity onPress={() => { openEmail() }}>
+                    <View style={[styles.containerView, { justifyContent: 'center', alignItems: 'center' }]}>
+                        <Text style={[styles.text, { color: '#FF8C00', textAlign: 'center' }]}>Tap here to contact me via E-Mail.</Text>
+                    </View>
+                </TouchableOpacity>
 
                 <View>
                     <TouchableOpacity onPress={handleLogout} style={styles.button}>
@@ -215,7 +236,6 @@ const styles = StyleSheet.create({
     containerView: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 13,
         backgroundColor: '#1f1f2d',
         padding: 15,
         borderRadius: 16,
@@ -231,10 +251,10 @@ const styles = StyleSheet.create({
         borderRadius: 12,
     },
     text: {
-        fontSize: 16,
-        fontWeight: 'bold',
+        fontSize: 14,
         fontFamily: 'Outfit-Black-Bold',
-        color: '#FF8C00',
+        color: 'white',
+        marginHorizontal: 10
     },
     btnText: {
         fontSize: 15,

@@ -5,10 +5,10 @@
     "scheme": "intouch",
     "version": "2.0.0",
     "orientation": "portrait",
-    "icon": "./assets/logo-no-background.png",
+    "icon": "./assets/logo-color.png",
     "userInterfaceStyle": "dark",
     "splash": {
-      "image": "./assets/logo-no-background.png",
+      "image": "./assets/logo-color.png",
       "resizeMode": "contain",
       "backgroundColor": "#171722"
     },
@@ -19,7 +19,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logo-no-background.png",
+        "foregroundImage": "./assets/logo-color.png",
         "backgroundColor": "#171722"
       },
       "package": "com.thedevpiyush.InTouch",
@@ -31,7 +31,7 @@
       ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/logo-color.png"
     },
     "plugins": [
       "expo-router",
@@ -39,7 +39,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/logo-no-background.png",
+          "icon": "./assets/logo-color.png",
           "color": "#171722",
           "sounds": []
         }

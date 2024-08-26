@@ -11,7 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { useNavigation } from 'expo-router';
-import logo from '../assets/logo-no-background.png'
+import logo from '../assets/logo-color.png'
 import * as Notifications from 'expo-notifications';
 import { doc, setDoc } from 'firebase/firestore';
 import * as Device from 'expo-device';

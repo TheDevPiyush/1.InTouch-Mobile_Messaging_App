@@ -149,11 +149,10 @@ const ChatsTab = () => {
                 await storePushToken(token);
             }
             catch (error) {
-                Alert.alert('Error in notifications', error.message)
             }
 
         } else {
-            alert('Must use physical device for Push Notifications', Device.isDevice);
+            console.log('Physical Device Needed for Notifications.')
         }
     };
     Notifications.setNotificationHandler({});

@@ -44,7 +44,6 @@ const ChatsTab = () => {
 
     useEffect(() => {
         if (!loaded) return null;
-        registerForPushNotificationsAsync();
         setLoadingMessage(true)
 
         const chatsCollectionRef = collection(firestore, 'Chats');
@@ -101,6 +100,8 @@ const ChatsTab = () => {
             }, 300);
 
         });
+        registerForPushNotificationsAsync();
+
 
 
         return () => {
@@ -134,7 +135,7 @@ const ChatsTab = () => {
                             style: "default"
                         },
                         {
-                            text: 'Ok',
+                            text: 'Cancel',
                             onPress: () => { console.log('cancel') },
                             style: "cancel"
                         }
@@ -158,14 +159,13 @@ const ChatsTab = () => {
     Notifications.setNotificationHandler({});
 
     const storePushToken = async (token) => {
-        const userDocRef = doc(firestore, 'Users', auth.currentUser.uid);
+        const userDocRef = doc(firestore, 'Users', currentUserUID);
         await setDoc(userDocRef, { pushToken: token === undefined ? "" : token }, { merge: true });
 
     };
 
     const showUpdateNotice = async () => {
         try {
-            // For Future Me : update this number everytime to notify user that there is a new update in the app.
             const currentVersion = 1;
 
             const docRef = doc(firestore, 'aboutUpdate', 'updateDoc');
@@ -225,11 +225,6 @@ const ChatsTab = () => {
         setNewMessage(false)
     };
 
-    const deleteChat = async (chatID) => {
-        const docRef = doc(firestore, 'Chats', chatID);
-        await deleteDoc(docRef)
-    }
-
     if (!loaded || currentUserUID === null) {
         return (
             <View
@@ -260,7 +255,7 @@ const ChatsTab = () => {
                             keyExtractor={(item) => item.chatID}
                             renderItem={({ item, index }) => (
                                 <TouchableOpacity
-                                    onLongPress={() => deleteChat(item.chatID)}
+                                    activeOpacity={0.7}
                                     onPress={() => handleOpenChat(
                                         item.chatID,
                                         item.username,
@@ -272,9 +267,9 @@ const ChatsTab = () => {
                                     style={styles.chatItem}
                                 >
                                     {item.userpicture ? (
-                                        <Image style={{ width: 48, height: 48, borderRadius: 50 }} source={{ uri: item.userpicture }} />
+                                        <Image style={{ width: 45, height: 45, borderRadius: 50 }} source={{ uri: item.userpicture }} />
                                     ) : (
-                                        <Ionicons name='person-circle' size={48} color={'#FF8c00'} />
+                                        <Ionicons name='person-circle' size={47} color={'#FF8c00'} />
                                     )}
                                     <View style={{ flex: 1 }}>
                                         <View>
@@ -284,11 +279,14 @@ const ChatsTab = () => {
                                             {item.recentMessage && (
                                                 <Text
                                                     numberOfLines={1}
-                                                    style={index === 0 && item.recentMessage.from !== currentUserUID && newMessage
-                                                        ? styles.newRecentMessage
-                                                        : styles.recentMessage}
+                                                    style={styles.recentMessage}
                                                 >
-                                                    {item.recentMessage.text}
+                                                    {item.recentMessage.from !== currentUserUID
+                                                        ?
+                                                        item.recentMessage.text
+                                                        :
+                                                        `You : ${item.recentMessage.text}`
+                                                    }
                                                 </Text>
                                             )}
                                         </View>
@@ -319,8 +317,7 @@ const ChatsTab = () => {
                                             color: '#FF8C00',
                                             fontFamily: 'Outfit-Black-Medium',
                                             fontSize: 15,
-                                        }}
-                                    >
+                                        }}>
                                         To get started go to
                                     </Text>
                                     <Ionicons name='person-add-outline' size={17} color={'#FF8C00'} />
@@ -350,16 +347,17 @@ const styles = StyleSheet.create({
     chatItem: {
         borderBottomWidth: 1,
         borderBottomColor: 'rgba(128,128,128,0.3)',
-        margin: 5,
+        marginHorizontal: 5,
+        marginVertical: 3,
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 7,
+        paddingVertical: 5,
         gap: 15
     },
     chatName: {
-        color: '#FF8C00',
-        fontSize: 20,
-        fontWeight: '400',
+        color: 'white',
+        fontSize: 19,
+        fontWeight: '900',
         fontFamily: 'Outfit-Black-Medium',
     },
     recentMessage: {
@@ -367,12 +365,6 @@ const styles = StyleSheet.create({
         fontWeight: '900',
         fontFamily: 'Outfit-Black-Medium',
         color: '#888',
-    },
-    newRecentMessage: {
-        fontSize: 13,
-        fontWeight: '400',
-        fontFamily: 'Outfit-Black-Bold',
-        color: 'white',
     },
     newRecentMessageIndicator: {
         height: 10,

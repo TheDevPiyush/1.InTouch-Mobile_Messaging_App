@@ -24,7 +24,9 @@ import {
     getDoc,
     updateDoc,
     deleteDoc,
-    limit
+    limit,
+    getDocs,
+    where
 } from 'firebase/firestore';
 import { firestore } from '../firebaseConfig';
 import Ionicons from '@expo/vector-icons/Ionicons'
@@ -36,6 +38,7 @@ import OptionsMenuOtherUser from './components/OptionsMenuOtherUser';
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import MessagesItem from './components/Messages';
 import CustomHeader from './components/CustomHeader ';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const Messages = () => {
 
     const [loaded] = useFonts({
@@ -47,7 +50,6 @@ const Messages = () => {
     const { username, chatID, searchedUserUID, currentUserUID, userpicture } = useLocalSearchParams();
     const navigation = useNavigation();
     const scrollRef = useRef(null);
-    const [seenStatus, setSeenStatus] = useState(null);
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [newMessage, setNewMessage] = useState([]);
@@ -63,6 +65,7 @@ const Messages = () => {
     const screenHeight = Dimensions.get('window').height;
     const menuWidth = 200;
     const menuHeight = 170;
+
     useEffect(() => {
         if (!loaded) {
             return null
@@ -91,48 +94,19 @@ const Messages = () => {
 
     useEffect(() => {
         if (scrollRef.current && messages.length > 0) {
-            scrollRef.current.scrollToEnd({ animated: true });
+            scrollRef.current.scrollToEnd({ animated: true }) + 200;
         }
     }, [messages]);
 
     useEffect(() => { setMessages(newMessage) }, [newMessage])
 
-    useEffect(() => {
-        const chatRef = doc(firestore, 'Chats', chatID);
-
-        const markAsSeen = async () => {
-            await updateDoc(chatRef, {
-                [currentUserUID]: true,
-            });
-        };
-
-        const resetSeenStatus = async () => {
-            await updateDoc(chatRef, {
-                [currentUserUID]: false,
-            });
-        };
-
-        markAsSeen();
-
-        const unsubscribe = onSnapshot(chatRef, (doc) => {
-            if (doc.exists()) {
-                const data = doc.data();
-                setSeenStatus(data[searchedUserUID]);
-            }
-        });
-
-        return () => {
-            resetSeenStatus();
-            unsubscribe();
-        };
-    }, [chatID, currentUserUID, searchedUserUID]);
     const listenToMessages = (chatID) => {
         const chatDocRef = doc(firestore, 'Chats', chatID);
         const messagesCollectionRef = collection(chatDocRef, 'Messages');
 
         const messagesQuery = query(
             messagesCollectionRef,
-            orderBy('timestamp', 'desc'),
+            orderBy('timestamp', 'asc'),
             limit(20)
         );
 
@@ -147,7 +121,6 @@ const Messages = () => {
         return unsubscribe;
     };
 
-
     const sendMessage = async () => {
         if (input.trim()) {
             const newMessage = {
@@ -156,7 +129,7 @@ const Messages = () => {
                 text: input,
                 timestamp: serverTimestamp(),
                 username: username,
-                replyTo: reply
+                replyTo: reply,
             };
 
             const chatDocRef = doc(firestore, 'Chats', chatID);
@@ -193,12 +166,12 @@ const Messages = () => {
                                     'Content-Type': 'application/json',
                                 },
                             });
-                        } catch (error) { console.log(error) }
+                        } catch (error) { }
+
 
                     }
                 }
-            } catch (error) {
-            }
+            } catch (error) { }
 
         }
     };
@@ -240,7 +213,9 @@ const Messages = () => {
         }
         else if (option === 'reply') {
             setReply(selectedMessage.text);
-            inputRef.current.focus();
+            setTimeout(() => {
+                inputRef.current.focus();
+            }, 300)
         }
     };
 
@@ -273,7 +248,7 @@ const Messages = () => {
                         ref={scrollRef}
                         overScrollMode="never"
                         style={styles.flatlist}
-                        data={(messages || []).sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0))}
+                        data={messages}
                         renderItem={({ item, index }) => (
                             <View style={{}}>
                                 <MessagesItem
@@ -283,6 +258,7 @@ const Messages = () => {
                                     currentUserUID={currentUserUID}
                                     setReplyTo={(item) => { setReply(item) }}
                                     scrollRef={scrollRef}
+                                    inputref={inputRef}
                                 />
                             </View>
                         )}
@@ -291,13 +267,8 @@ const Messages = () => {
                         }
                         onLayout={() => scrollRef.current?.scrollToEnd({ animated: true })}
                     />
-                    {seenStatus &&
-                        <View style={{ flexDirection: 'row-reverse', marginHorizontal: 10, marginVertical: 2 }}>
-                            <Text style={{ color: 'rgba(255,255,255,0.15)', fontFamily: 'Outfit-Black-Regular' }}> InTouch with you now... </Text>
-                        </View>
-                    }
                     {reply &&
-                        <View style={{ marginHorizontal: 10, borderTopColor: 'rgba(128,128,128,0.3)', borderTopWidth: 1 }}>
+                        <View style={{ marginHorizontal: 10, borderTopColor: 'rgba(128,128,128,0.3)', borderTopWidth: 1, marginTop: 5, paddingVertical: 5 }}>
 
                             <View style={styles.replyContainer}>
                                 <View style={{ flex: 1 }}>
@@ -315,7 +286,7 @@ const Messages = () => {
                                 </View>
 
                                 <TouchableOpacity onPress={() => { setReply(null) }}>
-                                    <Ionicons name='close-outline' style={{ paddingHorizontal: 0 }} size={17} color={'#ff9301'} />
+                                    <Ionicons name='close-circle-outline' size={20} color={'#ff9301'} />
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -370,7 +341,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#1f1f2d',
         borderRadius: 15,
-        padding: 13,
+        padding: 10,
         marginHorizontal: 10,
     },
     input: {
@@ -421,7 +392,7 @@ const styles = StyleSheet.create({
     },
     replyText: {
         fontFamily: 'Outfit-Black-Regular',
-        fontSize: 13,
+        fontSize: 14,
         color: 'rgba(255,255,255,0.7)',
         width: '100%',
     },

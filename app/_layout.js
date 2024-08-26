@@ -24,7 +24,7 @@ const Layout = () => {
                 headerStyle: { backgroundColor: '#1f1f2d' },
                 headerBackTitleVisible: false,
                 headerTitleStyle: {
-                    color: '#FF8C00',
+                    color: 'white',
                     fontStyle: 'Outfit-Black-Bold',
                     fontSize: 23,
                 },

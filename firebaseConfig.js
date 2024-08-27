@@ -3,12 +3,12 @@ import { getFirestore } from "firebase/firestore";
 import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 const firebaseConfig = {
-    apiKey: "AIzaSyADbA9pgJju8YvDBbmI24EkexYj3QDCvd4",
-    authDomain: "intouch-chat-app.firebaseapp.com",
-    projectId: "intouch-chat-app",
-    storageBucket: "intouch-chat-app.appspot.com",
-    messagingSenderId: "153489940234",
-    appId: "1:153489940234:web:d47b44b90a9400d3bda4f3"
+    apiKey: "Your API Key",
+    authDomain: "YOUR PROJECT DETAILS",
+    projectId: "YOUR PROJECT DETAILS",
+    storageBucket: "YOUR PROJECT DETAILS",
+    messagingSenderId: "YOUR PROJECT DETAILS",
+    appId: "YOUR PROJECT DETAILS"
 };
 
 const app = initializeApp(firebaseConfig);

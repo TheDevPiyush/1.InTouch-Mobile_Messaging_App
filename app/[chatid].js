@@ -39,6 +39,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import MessagesItem from './components/Messages';
 import CustomHeader from './components/CustomHeader ';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { TypingAnimation } from 'react-native-typing-animation';
 const Messages = () => {
 
     const [loaded] = useFonts({
@@ -58,8 +59,10 @@ const Messages = () => {
     const [selectedMessage, setSelectedMessage] = useState(null);
     const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
     const [reply, setReply] = useState(null)
+    const [isTyping, setIsTyping] = useState(false);
 
     const inputRef = useRef(null)
+    const typingTimeoutRef = useRef(null);
 
     const screenWidth = Dimensions.get('window').width;
     const screenHeight = Dimensions.get('window').height;
@@ -82,21 +85,47 @@ const Messages = () => {
     }, [navigation, username, loaded]);
 
     useEffect(() => {
-        listenToMessages(chatID, setMessages);
-    }, [chatID, loaded]);
-
-    useEffect(() => {
         if (chatID) {
             const unsubscribe = listenToMessages(chatID, setMessages);
             return () => unsubscribe();
         }
-    }, [chatID]);
+    }, [chatID, loaded]);
 
     useEffect(() => {
-        if (scrollRef.current && messages.length > 0) {
-            scrollRef.current.scrollToEnd({ animated: true }) + 200;
+        if (chatID) {
+            const chatDocRef = doc(firestore, 'Chats', chatID);
+            const unsubscribe = onSnapshot(chatDocRef, (doc) => {
+                if (doc.exists()) {
+                    setIsTyping(doc.data()[searchedUserUID]);
+                }
+            });
+            return () => unsubscribe();
         }
-    }, [messages]);
+    }, [loaded, chatID])
+
+    useEffect(() => {
+        const chatDocRef = doc(firestore, 'Chats', chatID);
+
+        if (input !== "") {
+            updateDoc(chatDocRef, { [currentUserUID]: true });
+
+            if (typingTimeoutRef.current) {
+                clearTimeout(typingTimeoutRef.current);
+            }
+
+            typingTimeoutRef.current = setTimeout(() => {
+                updateDoc(chatDocRef, { [currentUserUID]: false });
+            }, 800);
+        } else {
+            updateDoc(chatDocRef, { [currentUserUID]: false });
+        }
+
+        return () => {
+            if (typingTimeoutRef.current) {
+                clearTimeout(typingTimeoutRef.current);
+            }
+        };
+    }, [input]);
 
     useEffect(() => { setMessages(newMessage) }, [newMessage])
 
@@ -106,7 +135,7 @@ const Messages = () => {
 
         const messagesQuery = query(
             messagesCollectionRef,
-            orderBy('timestamp', 'asc'),
+            orderBy('timestamp', 'desc'),
             limit(20)
         );
 
@@ -151,7 +180,7 @@ const Messages = () => {
                     if (pushToken) {
                         const message = {
                             to: pushToken,
-                            sound: Platform.OS === "android" ? null : "default",
+                            sound: "default",
                             title: `${username}`,
                             body: `${input}`,
                             data: { chatID, newMessage },
@@ -167,8 +196,6 @@ const Messages = () => {
                                 },
                             });
                         } catch (error) { }
-
-
                     }
                 }
             } catch (error) { }
@@ -219,6 +246,14 @@ const Messages = () => {
         }
     };
 
+    useEffect(() => { autoScroll() }, [messages])
+
+    const autoScroll = () => {
+        if (scrollRef.current && messages.length > 0) {
+            scrollRef.current.scrollToIndex({ index: 0, animated: true });
+        }
+    }
+
     if (!loaded) {
         return (
             <View
@@ -249,6 +284,7 @@ const Messages = () => {
                         overScrollMode="never"
                         style={styles.flatlist}
                         data={messages}
+                        inverted={true}
                         renderItem={({ item, index }) => (
                             <View style={{}}>
                                 <MessagesItem
@@ -263,10 +299,25 @@ const Messages = () => {
                             </View>
                         )}
                         keyExtractor={(item, index) => index}
-                        onContentSizeChange={() => scrollRef.current?.scrollToEnd()
-                        }
-                        onLayout={() => scrollRef.current?.scrollToEnd({ animated: true })}
+                        onContentSizeChange={autoScroll}
                     />
+                    {isTyping &&
+                        <View style={{
+                            marginBottom: 25,
+                            marginHorizontal: 20,
+                            justifyContent: 'center',
+                            alignItems: 'flex-start',
+                        }}>
+                            <TypingAnimation
+                                dotColor="rgba(255,255,255,0.5)"
+                                dotRadius={4}
+                                dotX={13}
+                                dotY={6}
+                                dotMargin={7}
+                                dotAmplitude={4}
+                                dotSpeed={0.1}
+                            />
+                        </View>}
                     {reply &&
                         <View style={{ marginHorizontal: 10, borderTopColor: 'rgba(128,128,128,0.3)', borderTopWidth: 1, marginTop: 5, paddingVertical: 5 }}>
 

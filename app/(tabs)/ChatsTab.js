@@ -131,7 +131,7 @@ const ChatsTab = () => {
                     Alert.alert('Notifications Permission Denied', 'You won\'t receive notifications for your messages. Please Allow in settings.', [
                         {
                             text: 'Open Settings',
-                            onPress: () => { Alert.alert('Restart Required', 'You need to restart the app after allowing the permission.', [{ text: 'Proceed', onPress: () => { Linking.openSettings(); }, style: 'default' }]) },
+                            onPress: () => { Alert.alert('Restart Required', 'Please Restart the App after allowing the permission.', [{ text: 'Proceed', onPress: () => { Linking.openSettings(); }, style: 'default' }]) },
                             style: "default"
                         },
                         {

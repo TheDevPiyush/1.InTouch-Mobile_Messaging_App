@@ -25,8 +25,7 @@ import {
     updateDoc,
     deleteDoc,
     limit,
-    getDocs,
-    where
+    deleteField,
 } from 'firebase/firestore';
 import { firestore } from '../firebaseConfig';
 import Ionicons from '@expo/vector-icons/Ionicons'
@@ -60,6 +59,7 @@ const Messages = () => {
     const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
     const [reply, setReply] = useState(null)
     const [isTyping, setIsTyping] = useState(false);
+    const [pushToken, setPushToken] = useState(null)
 
     const inputRef = useRef(null)
     const typingTimeoutRef = useRef(null);
@@ -76,7 +76,6 @@ const Messages = () => {
     }, [loaded])
 
 
-
     useEffect(() => {
         if (username) navigation.setOptions({
             headerTitle: username,
@@ -84,12 +83,15 @@ const Messages = () => {
         });
     }, [navigation, username, loaded]);
 
+
     useEffect(() => {
         if (chatID) {
             const unsubscribe = listenToMessages(chatID, setMessages);
+            getPushToken();
             return () => unsubscribe();
         }
     }, [chatID, loaded]);
+
 
     useEffect(() => {
         if (chatID) {
@@ -103,22 +105,20 @@ const Messages = () => {
         }
     }, [loaded, chatID])
 
+
     useEffect(() => {
         const chatDocRef = doc(firestore, 'Chats', chatID);
 
         if (input !== "") {
             updateDoc(chatDocRef, { [currentUserUID]: true });
-
             if (typingTimeoutRef.current) {
                 clearTimeout(typingTimeoutRef.current);
             }
-
             typingTimeoutRef.current = setTimeout(() => {
                 updateDoc(chatDocRef, { [currentUserUID]: false });
             }, 800);
-        } else {
-            updateDoc(chatDocRef, { [currentUserUID]: false });
         }
+        else { updateDoc(chatDocRef, { [currentUserUID]: false }); }
 
         return () => {
             if (typingTimeoutRef.current) {
@@ -166,42 +166,43 @@ const Messages = () => {
             setInput('');
             setReply(null)
             await addDoc(messagesCollectionRef, newMessage);
-
-            try {
-                const userDocRef = doc(firestore, 'Users', searchedUserUID);
-                const userDoc = await getDoc(userDocRef);
-                const CurrentUserDocRef = doc(firestore, 'Users', currentUserUID);
-                const CurrentUserDoc = await getDoc(CurrentUserDocRef);
-
-                if (userDoc.exists()) {
-                    const { pushToken } = userDoc.data();
-                    const { username } = CurrentUserDoc.data();
-
-                    if (pushToken) {
-                        const message = {
-                            to: pushToken,
-                            sound: "default",
-                            title: `${username}`,
-                            body: `${input}`,
-                            data: { chatID, newMessage },
-                            priority: "high",
-                            channelId: "messages",
-                            vibrate: true,
-                        };
-
-                        try {
-                            const response = await axios.post('https://exp.host/--/api/v2/push/send?useFcmV1=true', message, {
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                            });
-                        } catch (error) { }
-                    }
-                }
-            } catch (error) { }
+            sendMessageNotification(input)
 
         }
     };
+
+    const getPushToken = async () => {
+        const userDocRef = doc(firestore, 'Users', searchedUserUID);
+        const userDoc = await getDoc(userDocRef);
+        setPushToken(userDoc.data().pushToken);
+    }
+
+    const sendMessageNotification = async (messageData) => {
+        try {
+            if (pushToken) {
+                const message = {
+                    to: pushToken,
+                    sound: "default",
+                    title: `${username}`,
+                    body: `${messageData}`,
+                    data: { chatID },
+                    priority: "high",
+                    channelId: "messages",
+                    vibrate: true,
+
+                };
+
+                try {
+                    const response = await axios.post('https://exp.host/--/api/v2/push/send?useFcmV1=true', message, {
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    });
+                } catch (error) { }
+
+            }
+        } catch (error) { }
+    }
 
     const handleLongPress = (event, message) => {
         const { pageX, pageY } = event.nativeEvent;
@@ -244,9 +245,76 @@ const Messages = () => {
                 inputRef.current.focus();
             }, 300)
         }
+        else if (option === "like") {
+            toggleReaction('like')
+        }
+        else if (option === "heart") {
+            toggleReaction('heart')
+
+        }
+        else if (option === "laugh") {
+            toggleReaction('laugh')
+
+        }
+        else if (option === "cry") {
+            toggleReaction('cry')
+
+        }
+        else if (option === "anger") {
+            toggleReaction('anger')
+
+        }
     };
 
-    useEffect(() => { autoScroll() }, [messages])
+    const toggleReaction = async (option) => {
+        const docRef = doc(firestore, "Chats", chatID, "Messages", selectedMessage.id);
+
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            const currentReactions = docSnap.data().Reactions || {};
+
+            let newReaction = null;
+            switch (option) {
+                case "like":
+                    newReaction = '👍';
+                    break;
+                case "heart":
+                    newReaction = '❤';
+                    break;
+                case "laugh":
+                    newReaction = '😂';
+                    break;
+                case "cry":
+                    newReaction = '😭';
+                    break;
+                case "anger":
+                    newReaction = '😡';
+                    break;
+                default:
+                    newReaction = null;
+            }
+
+            if (currentReactions[currentUserUID] === newReaction) {
+                await updateDoc(docRef, {
+                    [`Reactions.${currentUserUID}`]: deleteField()
+                });
+            } else {
+                await updateDoc(docRef, {
+                    [`Reactions.${currentUserUID}`]: newReaction
+                });
+                const userDocRef = doc(firestore, 'Users', currentUserUID);
+                const userDoc = await getDoc(userDocRef);
+                const reactionUsername = userDoc.data().username
+                if (reactionUsername) {
+                    reactionMessage = `${reactionUsername} has reacted ${newReaction} to a message.`
+                    sendMessageNotification(reactionMessage)
+                }
+            }
+
+        }
+    };
+
+    useEffect(() => { autoScroll() }, [])
 
     const autoScroll = () => {
         if (scrollRef.current && messages.length > 0) {
@@ -292,6 +360,7 @@ const Messages = () => {
                                     index={index}
                                     handleLongPress={handleLongPress}
                                     currentUserUID={currentUserUID}
+                                    searchedUserUID={searchedUserUID}
                                     setReplyTo={(item) => { setReply(item) }}
                                     scrollRef={scrollRef}
                                     inputref={inputRef}
@@ -299,7 +368,6 @@ const Messages = () => {
                             </View>
                         )}
                         keyExtractor={(item, index) => index}
-                        onContentSizeChange={autoScroll}
                     />
                     {isTyping &&
                         <View style={{

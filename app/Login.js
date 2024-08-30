@@ -12,11 +12,7 @@ import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { useNavigation } from 'expo-router';
 import logo from '../assets/logo-color.png'
-import * as Notifications from 'expo-notifications';
-import { doc, setDoc } from 'firebase/firestore';
-import * as Device from 'expo-device';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
-import { firestore } from '../firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 SplashScreen.preventAutoHideAsync();

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, PanResponder, Animated } from 'react-native';
 
-const MessagesItem = ({ item, index, handleLongPress, currentUserUID, setReplyTo, inputref }) => {
+const MessagesItem = ({ item, index, handleLongPress, currentUserUID, searchedUserUID, setReplyTo, inputref }) => {
     const translateX = useRef(new Animated.Value(0)).current;
 
 
@@ -46,65 +46,81 @@ const MessagesItem = ({ item, index, handleLongPress, currentUserUID, setReplyTo
 
 
                 <TouchableOpacity
-                    style={item.from === currentUserUID ? styles.sentMessage : styles.receivedMessage}
+                    style={item.from === currentUserUID ? [styles.sentMessage, { borderBottomRightRadius: index === 0 ? 0 : 20 }] : [styles.receivedMessage, { borderTopLeftRadius: index === 0 ? 0 : 20 }]}
                     activeOpacity={0.75}
-                    onLongPress={(e) => handleLongPress(e, item)}
-                >
+                    onLongPress={(e) => handleLongPress(e, item)}>
 
-                    {item.replyTo !== null ? (
-                        <View style={{ flexDirection: 'row', }}>
-                            <View style={{ justifyContent: 'flex-start' }}>
+                    <View style={{ flexDirection: 'column', }}>
+                        <View style={{ justifyContent: 'flex-start', padding: 5 }}>
+                            {item.replyTo !== null &&
                                 <Text style={item.from === currentUserUID ? styles.sentReplyText : styles.receivedReplyText}>
                                     {item.replyTo}
                                 </Text>
-                                <Text style={item.from === currentUserUID ? styles.sentText : styles.receivedText}>
-                                    {item.text || ''}
+                            }
+                            <Text style={item.from === currentUserUID ? styles.sentText : styles.receivedText}>
+                                {item.text}
+                            </Text>
+                        </View>
+                        {item.timestamp &&
+                            <View style={{
+                                alignSelf: 'flex-end',
+                                paddingHorizontal: 3,
+
+                            }}>
+                                <Text style={{
+                                    color: "#383849",
+                                    fontSize: 10,
+                                    textAlign: item.from === currentUserUID ? 'right' : 'left',
+
+                                }}>
+                                    {item.timestamp.toDate().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }).replace(':', ':')}
                                 </Text>
                             </View>
-                            {item.timestamp &&
-                                <View style={{
-                                    alignSelf: 'flex-end',
-                                }}>
-                                    <Text style={{
-                                        color: "#383849",
-                                        fontSize: 11,
-                                        textAlign: item.from === currentUserUID ? 'right' : 'left',
+                        }
 
-                                    }}>
-                                        {item.timestamp.toDate().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }).replace(':', ':')}
-                                        {/* {item.timestamp.toDate().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '-')} */}
+                        {item.Reactions?.[searchedUserUID] &&
+                            <View style={{
+                                position: 'absolute',
+                                bottom: -15,
+                                zIndex: 100,
+                                right: item.from === currentUserUID ? 0 : null,
+                                left: item.from === currentUserUID ? null : 22,
+                                backgroundColor: 'rgba(0,0,0,0.2)',
+                                padding: 3,
+                                borderRadius: 50,
+                                justifyContent: 'center',
+                                alignItems: 'center',
 
-                                    </Text>
-                                </View>
-                            }
-                        </View>
-                    ) : (
-                        <View style={{ flexDirection: 'row', }}>
-                            <View style={{ justifyContent: 'flex-start', padding: 5 }}>
-                                <Text style={item.from === currentUserUID ? styles.sentText : styles.receivedText}>
-                                    {item.text || ''}
+                            }}>
+                                <Text style={{ fontSize: 13 }}>
+                                    {item.Reactions?.[searchedUserUID]}
                                 </Text>
                             </View>
-                            {item.timestamp &&
-                                <View style={{
-                                    alignSelf: 'flex-end',
-                                    marginTop: 3
-                                }}>
-                                    <Text style={{
-                                        color: "#383849",
-                                        fontSize: 11,
-                                        // marginHorizontal: 10,
-                                        textAlign: item.from === currentUserUID ? 'right' : 'left',
+                        }
 
-                                    }}>
-                                        {item.timestamp.toDate().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }).replace(':', ':')}
-                                        {/* {item.timestamp.toDate().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '-')} */}
+                        {item.Reactions?.[currentUserUID] &&
+                            <View style={{
+                                position: 'absolute',
+                                bottom: -15,
+                                zIndex: 100,
+                                right: item.from === currentUserUID ? 22 : null,
+                                left: item.from === currentUserUID ? null : 0,
+                                backgroundColor: 'rgba(0,0,0,0.2)',
+                                padding: 3,
+                                borderRadius: 50,
+                                justifyContent: 'center',
+                                alignItems: 'center',
 
-                                    </Text>
-                                </View>
-                            }
-                        </View>
-                    )}
+                            }}>
+                                <Text style={{ fontSize: 13 }}>
+                                    {item.Reactions?.[currentUserUID]}
+                                </Text>
+                            </View>
+                        }
+
+
+
+                    </View>
 
                 </TouchableOpacity>
             </View >
@@ -119,8 +135,9 @@ const styles = StyleSheet.create({
         marginVertical: 3,
         marginHorizontal: 10,
         maxWidth: '70%',
-        overflow: 'hidden',
-        padding: 5
+        padding: 5,
+        marginVertical: 5
+
     },
     receivedMessage: {
         alignSelf: 'flex-start',
@@ -129,8 +146,9 @@ const styles = StyleSheet.create({
         marginVertical: 5,
         marginHorizontal: 10,
         maxWidth: '70%',
-        overflow: 'hidden',
-        padding: 5
+        padding: 5,
+        marginVertical: 5
+
 
     },
     sentText: {
@@ -140,7 +158,8 @@ const styles = StyleSheet.create({
     receivedText: {
         color: 'white',
         fontFamily: 'Outfit-Black-Medium',
-        fontSize: 15
+        fontSize: 15,
+        overflow: 'visible'
     },
     sentReplyText: {
         fontFamily: 'Outfit-Black-Regular',

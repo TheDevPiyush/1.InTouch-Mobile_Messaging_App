@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, Image, Alert, Platform } from 'react-native';
 import { firestore, auth } from '../../firebaseConfig';
 import { collection, query, where, onSnapshot, orderBy, limit, doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
-import { useNavigation } from 'expo-router';
+import { router, useNavigation } from 'expo-router';
 import { useFonts } from 'expo-font';
 import Ionicons from '@expo/vector-icons/Ionicons'
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -11,6 +11,7 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import * as Linking from 'expo-linking';
 import Constants from 'expo-constants'
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 const ChatsTab = () => {
     const [chats, setChats] = useState([]);
     const [loaded] = useFonts({
@@ -27,18 +28,22 @@ const ChatsTab = () => {
 
 
     useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged((user) => {
-            if (user.uid) {
-                setcurrentUserUID(user.uid)
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                setcurrentUserUID(user.uid);
+            } else {
+                try {
+                    Alert.alert('Session Expired', 'Your session has expired, Please login again.')
+                    await AsyncStorage.setItem("LoggedIn", 'false');
+                    await signOut(auth);
+                    router.replace('/')
+                } catch (error) {
+                    Alert.alert('Error', "Something went wrong logging out.")
+                }
+            }
+        });
 
-            }
-            else {
-                AsyncStorage.setItem("LoggedIn", 'false').catch();
-                auth.signOut().catch();
-                router.replace('/');
-            }
-        })
-        return () => unsubscribe()
+        return () => unsubscribe();
     }, [])
 
 
@@ -154,8 +159,8 @@ const ChatsTab = () => {
         } else {
             console.log('Physical Device Needed for Notifications.')
         }
+        Notifications.setNotificationHandler({});
     };
-    Notifications.setNotificationHandler({});
 
     const storePushToken = async (token) => {
         const userDocRef = doc(firestore, 'Users', currentUserUID);

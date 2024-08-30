@@ -9,6 +9,14 @@ const OptionsMenuOtherUser = ({ visible, onClose, position, onOptionSelect }) =>
         'Outfit-Black-Medium': require('../../assets/Outfit-Medium.ttf'),
         'Outfit-Black-Bold': require('../../assets/Outfit-Bold.ttf'),
     });
+    const reactions = {
+        laugh: '😂',
+        cry: '😭',
+        like: '👍',
+        heart: '❤',
+        anger: '😡'
+    }
+
     return (
         <Modal
             transparent={true}
@@ -23,10 +31,30 @@ const OptionsMenuOtherUser = ({ visible, onClose, position, onOptionSelect }) =>
                             <Ionicons name='copy-outline' size={20} color={'#FF8C00'} />
                             <Text style={styles.optionText}>Copy</Text>
                         </TouchableOpacity>
+
                         <TouchableOpacity onPress={() => onOptionSelect('reply')} style={styles.menuItem}>
                             <Ionicons name='arrow-redo-outline' size={20} color={'#FF8C00'} />
                             <Text style={styles.optionText}>Reply to</Text>
                         </TouchableOpacity>
+
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3, marginTop: 3, paddingTop: 3 }}>
+                            <TouchableOpacity activeOpacity={0.6} onPress={() => onOptionSelect('like')} >
+                                <Text style={{ fontSize: 20 }}>{reactions.like}</Text>
+                            </TouchableOpacity >
+                            <TouchableOpacity activeOpacity={0.6} onPress={() => onOptionSelect('heart')} >
+                                <Text style={{ fontSize: 20 }}>{reactions.heart}</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity activeOpacity={0.6} onPress={() => onOptionSelect('laugh')} >
+                                <Text style={{ fontSize: 20 }}>{reactions.laugh}</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity activeOpacity={0.6} onPress={() => onOptionSelect('cry')} >
+                                <Text style={{ fontSize: 20 }}>{reactions.cry}</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity activeOpacity={0.6} onPress={() => onOptionSelect('anger')} >
+                                <Text style={{ fontSize: 20 }}>{reactions.anger}</Text>
+                            </TouchableOpacity>
+
+                        </View>
                     </View>
                 </View>
             </TouchableWithoutFeedback>
@@ -56,6 +84,8 @@ const styles = StyleSheet.create({
         gap: 6,
         padding: 5,
         alignItems: 'center',
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(128,128,128,0.3)'
     },
     optionText: {
         color: '#FF8C00',

@@ -14,24 +14,24 @@
     "@react-navigation/material-top-tabs": "^6.6.14",
     "@react-navigation/native": "^6.1.18",
     "axios": "^1.7.3",
-    "expo": "~51.0.24",
+    "expo": "~51.0.31",
     "expo-application": "~5.9.1",
     "expo-auth-session": "~5.5.2",
     "expo-clipboard": "~6.0.3",
     "expo-constants": "~16.0.2",
-    "expo-dev-client": "~4.0.22",
+    "expo-dev-client": "~4.0.25",
     "expo-device": "~6.0.2",
     "expo-font": "~12.0.9",
     "expo-image-picker": "~15.0.7",
     "expo-linking": "~6.3.1",
-    "expo-notifications": "~0.28.15",
+    "expo-notifications": "~0.28.16",
     "expo-random": "~14.0.1",
-    "expo-router": "~3.5.20",
+    "expo-router": "~3.5.23",
     "expo-splash-screen": "~0.27.5",
     "expo-status-bar": "~1.12.1",
     "firebase": "^10.12.5",
     "react": "18.2.0",
-    "react-native": "0.74.3",
+    "react-native": "0.74.5",
     "react-native-context-menu-view": "^1.16.0",
     "react-native-gesture-handler": "~2.16.1",
     "react-native-reanimated": "~3.10.1",
@@ -43,7 +43,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
-    "@types/react": "^18.3.3"
+    "@types/react": "~18.2.79"
   },
   "private": true
 }

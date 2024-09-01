@@ -8,8 +8,6 @@ node_modules/
 dist/
 web-build/
 /android
-./firebaseConfig.js
-./google-services.json
 # Native
 *.orig.*
 *.jks

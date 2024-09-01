@@ -11,13 +11,10 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { useNavigation } from 'expo-router';
-import logo from '../assets/photo.jpg'
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 SplashScreen.preventAutoHideAsync();
-
-
 
 const Login = () => {
     const navigation = useNavigation();
@@ -112,23 +109,6 @@ const Login = () => {
                     <View style={{
                         marginTop: '8%', marginHorizontal: 15
                     }}>
-                        {/* Title Text*/}
-                        <View style={{
-                            flexDirection: 'row',
-                            alignItems: 'center', gap: 10,
-                        }}>
-                            <Image source={logo}
-                                style={{
-                                    height: 50, width: 50,
-                                    borderRadius: 50,
-                                    alignItems: 'center',
-                                }} resizeMode='contain' />
-                            <Text style={{
-                                color: 'white',
-                                fontSize: 50,
-                                fontFamily: 'Outfit-Black-Bold',
-                            }}>InTouch</Text>
-                        </View>
                         <Text style={{
                             marginVertical: '7%',
                             color: 'rgba(255,255,255,0.85)',

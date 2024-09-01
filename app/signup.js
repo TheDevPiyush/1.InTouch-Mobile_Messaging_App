@@ -11,7 +11,6 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { useNavigation } from 'expo-router';
-import logo from '../assets/photo.jpg'
 import { createUserWithEmailAndPassword, getAuth } from 'firebase/auth';
 import { collection, doc, getDocs, query, serverTimestamp, setDoc, where } from 'firebase/firestore';
 import { firestore } from '../firebaseConfig';
@@ -117,18 +116,6 @@ const Signup = () => {
                     <View style={{
                         marginTop: '8%', marginHorizontal: 15
                     }}>
-                        {/* Title Text*/}
-                        <View style={{
-                            backgroundColor: '', flexDirection: 'row',
-                            alignItems: 'center', gap: 10
-                        }}>
-                            <Image source={logo} style={{ height: 50, width: 50, alignItems: 'center', borderRadius: 50, }} resizeMode='contain' />
-                            <Text style={{
-                                color: 'white',
-                                fontSize: 50,
-                                fontFamily: 'Outfit-Black-Bold',
-                            }}>InTouch</Text>
-                        </View>
                         <Text style={{
                             marginVertical: '5%',
                             color: 'rgba(255,255,255,0.85)',

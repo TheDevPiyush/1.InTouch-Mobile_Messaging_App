@@ -113,6 +113,8 @@ const ChatsTab = () => {
             unsubscribe();
         };
 
+
+
     }, [currentUserUID, loaded]);
 
     useEffect(() => {
@@ -124,6 +126,21 @@ const ChatsTab = () => {
     }, [updateMsg])
 
     const registerForPushNotificationsAsync = async () => {
+
+        if (Platform.OS === 'android') {
+            Notifications.setNotificationChannelAsync('messages', {
+                name: 'messages',
+                importance: Notifications.AndroidImportance.HIGH,
+                vibrationPattern: [0, 250, 250, 250],
+                lightColor: '#FF231F7C',
+                sound: true,
+                lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+                showBadge: true,
+                priority: "high",
+
+            });
+        }
+
         if (Device.isDevice) {
             try {
                 const { status: existingStatus } = await Notifications.getPermissionsAsync();
@@ -184,7 +201,7 @@ const ChatsTab = () => {
                 }
             }
         } catch (error) { }
-    }
+    };
 
     const mergeChats = (prevChats, newChats) => {
         const chatMap = {};
@@ -287,7 +304,12 @@ const ChatsTab = () => {
                                                 >
                                                     {item.recentMessage.from !== currentUserUID
                                                         ?
-                                                        item.recentMessage.text
+                                                        item.recentMessage.messageStatus === 'sent' ?
+                                                            <Text style={{ color: '#ff9301' }}>
+                                                                {item.recentMessage.text}
+                                                            </Text>
+                                                            :
+                                                            item.recentMessage.text
                                                         :
                                                         `You : ${item.recentMessage.text}`
                                                     }
@@ -295,9 +317,10 @@ const ChatsTab = () => {
                                             )}
                                         </View>
                                     </View>
-                                    {(index === 0 && item.recentMessage.from !== currentUserUID && newMessage) && (
-                                        <View style={styles.newRecentMessageIndicator} />
-                                    )}
+                                    {item.recentMessage.from !== currentUserUID &&
+                                        item.recentMessage.messageStatus === 'sent' && <View style={styles.newRecentMessageIndicator} />
+                                    }
+                                    {/* {console.log(item.messageStatus, item.text)} */}
                                 </TouchableOpacity>
                             )}
                         />
@@ -360,7 +383,7 @@ const styles = StyleSheet.create({
     },
     chatName: {
         color: 'white',
-        fontSize: 19,
+        fontSize: 17,
         fontWeight: '900',
         fontFamily: 'Outfit-Black-Medium',
     },

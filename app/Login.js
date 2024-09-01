@@ -160,7 +160,7 @@ const Login = () => {
 
                                 ref={passRef}
                                 keyboardType='default'
-                                returnKeyType='next'
+                                returnKeyType=''
                                 onChangeText={setpassword}
                                 onFocus={() => { setFocused("password") }}
                                 style={styles.inputStyle}
@@ -170,7 +170,7 @@ const Login = () => {
                             />
                         </View>
                         {/* MAIN LOG IN BUTTON */}
-                        <TouchableOpacity disabled={disabled} style={styles.button} onPress={signInWithEmail}>
+                        <TouchableOpacity activeOpacity={0.7} disabled={disabled} style={styles.button} onPress={signInWithEmail}>
                             {loading
                                 ? <ActivityIndicator size={'small'} color={'#1f1f2d'} />
                                 : <Text style={styles.buttonText}>Log In</Text>
@@ -189,6 +189,19 @@ const Login = () => {
                                 <Text style={styles.signupbuttonText}> Sign Up!</Text>
                             </TouchableOpacity>
                         </View>
+                        {/* {GO TO FORGOT Password} */}
+                        <View style={{
+                            flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 5
+                        }}>
+                            <Text style={[styles.notAccountText, { fontSize: 14 }]}>
+                                Forgot your password?
+                            </Text>
+                            <TouchableOpacity onPress={() => {
+                                navigation.navigate('PasswordReset')
+                            }}>
+                                <Text style={[styles.signupbuttonText, { fontSize: 14, padding: 5 }]}> Reset!</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
@@ -198,14 +211,15 @@ const Login = () => {
 }
 const styles = StyleSheet.create({
     inputContainer: {
-        height: 55,
+        height: 50,
         backgroundColor: "#1f1f2d",
         borderRadius: 10,
-        marginVertical: 5
+        marginVertical: 5,
+        overflow: 'hidden'
     },
     inputStyle: {
-        fontSize: 20,
-        padding: 12, width: '100%', height: '100%', color: 'white',
+        fontSize: 17,
+        padding: 10, width: '100%', height: '100%', color: 'white',
         fontFamily: 'Outfit-Black-Medium'
     },
     focusInput: {
@@ -213,29 +227,29 @@ const styles = StyleSheet.create({
         borderColor: '#FF8C00'
     },
     labelStyle: {
-        marginVertical: 10,
+        marginVertical: 7,
         color: 'rgba(255,255,255,0.7)',
-        fontSize: 20,
+        fontSize: 17,
         fontFamily: 'Outfit-Black-Regular',
     },
     button: {
         backgroundColor: '#ff9301',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 17,
+        paddingVertical: 15,
         width: '100%',
         marginHorizontal: 'auto',
-        marginVertical: 30,
+        marginVertical: 23,
         borderRadius: 12
     },
     buttonText: {
         color: '#171722',
-        fontSize: 20,
+        fontSize: 17,
         fontFamily: 'Outfit-Black-Bold',
     },
     notAccountText: {
         color: 'rgba(255,255,255,0.7)',
-        fontSize: 16,
+        fontSize: 15,
         fontFamily: 'Outfit-Black-Regular',
     },
     signupbuttonText: {

@@ -9,6 +9,7 @@ import {
     TouchableOpacity,
     ActivityIndicator,
     Dimensions,
+    AppState,
 } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -26,6 +27,10 @@ import {
     deleteDoc,
     limit,
     deleteField,
+    writeBatch,
+    where,
+    getDocs,
+    startAfter,
 } from 'firebase/firestore';
 import { firestore } from '../firebaseConfig';
 import Ionicons from '@expo/vector-icons/Ionicons'
@@ -37,7 +42,7 @@ import OptionsMenuOtherUser from './components/OptionsMenuOtherUser';
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import MessagesItem from './components/Messages';
 import CustomHeader from './components/CustomHeader ';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Notifications from 'expo-notifications'
 import { TypingAnimation } from 'react-native-typing-animation';
 const Messages = () => {
 
@@ -60,7 +65,8 @@ const Messages = () => {
     const [reply, setReply] = useState(null)
     const [isTyping, setIsTyping] = useState(false);
     const [pushToken, setPushToken] = useState(null)
-
+    const [lastVisible, setLastVisible] = useState(null);
+    const [messageLoading, setMessageLoading] = useState(false)
     const inputRef = useRef(null)
     const typingTimeoutRef = useRef(null);
 
@@ -93,6 +99,7 @@ const Messages = () => {
     }, [chatID, loaded]);
 
 
+
     useEffect(() => {
         if (chatID) {
             const chatDocRef = doc(firestore, 'Chats', chatID);
@@ -101,7 +108,9 @@ const Messages = () => {
                     setIsTyping(doc.data()[searchedUserUID]);
                 }
             });
-            return () => unsubscribe();
+            updateSeenStatus();
+            Notifications.setNotificationHandler({});
+
         }
     }, [loaded, chatID])
 
@@ -127,7 +136,43 @@ const Messages = () => {
         };
     }, [input]);
 
-    useEffect(() => { setMessages(newMessage) }, [newMessage])
+    useEffect(() => { setMessages(newMessage); updateSeenStatus(); }, [newMessage])
+
+    useEffect(() => { autoScroll() }, [])
+
+    const fetchMoreMessages = async () => {
+        if (!lastVisible) return;
+
+        if (messages.length > 18) {
+            setMessageLoading(true)
+
+            const chatDocRef = doc(firestore, 'Chats', chatID);
+            const messagesCollectionRef = collection(chatDocRef, 'Messages');
+
+            const messagesQuery = query(
+                messagesCollectionRef,
+                orderBy('timestamp', 'desc'),
+                startAfter(lastVisible),
+                limit(10)
+            );
+
+            const querySnapshot = await getDocs(messagesQuery);
+
+            if (!querySnapshot.empty) {
+                const newMessages = querySnapshot.docs.map((doc) => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
+
+                setNewMessage((prevMessages) => [...prevMessages, ...newMessages]);
+                setMessageLoading(false)
+            }
+            setMessageLoading(false)
+        }
+
+    };
 
     const listenToMessages = (chatID) => {
         const chatDocRef = doc(firestore, 'Chats', chatID);
@@ -144,6 +189,9 @@ const Messages = () => {
                 id: doc.id,
                 ...doc.data()
             }));
+            if (!querySnapshot.empty) {
+                setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
+            }
             setNewMessage(messages)
         });
 
@@ -159,6 +207,7 @@ const Messages = () => {
                 timestamp: serverTimestamp(),
                 username: username,
                 replyTo: reply,
+                messageStatus: "sent",
             };
 
             const chatDocRef = doc(firestore, 'Chats', chatID);
@@ -167,7 +216,7 @@ const Messages = () => {
             setReply(null)
             await addDoc(messagesCollectionRef, newMessage);
             sendMessageNotification(input)
-
+            updateSeenStatus();
         }
     };
 
@@ -189,7 +238,6 @@ const Messages = () => {
                     priority: "high",
                     channelId: "messages",
                     vibrate: true,
-
                 };
 
                 try {
@@ -314,7 +362,23 @@ const Messages = () => {
         }
     };
 
-    useEffect(() => { autoScroll() }, [])
+    const updateSeenStatus = async () => {
+        const chatDocRef = doc(firestore, 'Chats', chatID);
+        const messagesCollectionRef = collection(chatDocRef, 'Messages');
+
+        const q = query(messagesCollectionRef, where("to", "==", currentUserUID), where("messageStatus", "==", "sent"));
+
+        const querySnapshot = await getDocs(q);
+        const batch = writeBatch(firestore);
+
+        querySnapshot.forEach((doc) => {
+            const messageRef = doc.ref;
+            batch.update(messageRef, { messageStatus: "seen" });
+        });
+
+        await batch.commit();
+    };
+
 
     const autoScroll = () => {
         if (scrollRef.current && messages.length > 0) {
@@ -345,102 +409,216 @@ const Messages = () => {
                 keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0} // Offset to handle the keyboard
             >
 
-                <SafeAreaView style={[styles.container, { paddingTop: 0, marginTop: 0 }]}>
-                    <FlatList
-                        keyboardShouldPersistTaps="handled"
-                        ref={scrollRef}
-                        overScrollMode="never"
-                        style={styles.flatlist}
-                        data={messages}
-                        inverted={true}
-                        renderItem={({ item, index }) => (
-                            <View style={{}}>
-                                <MessagesItem
-                                    item={item}
-                                    index={index}
-                                    handleLongPress={handleLongPress}
-                                    currentUserUID={currentUserUID}
-                                    searchedUserUID={searchedUserUID}
-                                    setReplyTo={(item) => { setReply(item) }}
-                                    scrollRef={scrollRef}
-                                    inputref={inputRef}
-                                />
-                            </View>
-                        )}
-                        keyExtractor={(item, index) => index}
-                    />
-                    {isTyping &&
-                        <View style={{
-                            marginBottom: 25,
-                            marginHorizontal: 20,
-                            justifyContent: 'center',
-                            alignItems: 'flex-start',
-                        }}>
-                            <TypingAnimation
-                                dotColor="rgba(255,255,255,0.5)"
-                                dotRadius={4}
-                                dotX={13}
-                                dotY={6}
-                                dotMargin={7}
-                                dotAmplitude={4}
-                                dotSpeed={0.1}
-                            />
+                {Platform.OS === 'ios'
+                    ?
+                    <SafeAreaView style={[styles.container, { paddingTop: 0, marginTop: 0 }]}>
+                        {messageLoading && <View style={{ backgroundColor: 'transparent' }}>
+                            <ActivityIndicator size="small" color="#FF8C00" />
                         </View>}
-                    {reply &&
-                        <View style={{ marginHorizontal: 10, borderTopColor: 'rgba(128,128,128,0.3)', borderTopWidth: 1, marginTop: 5, paddingVertical: 5 }}>
-
-                            <View style={styles.replyContainer}>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={{
-                                        color: 'rgba(128,128,128,0.7)',
-                                        fontSize: 12,
-                                        fontFamily: 'Outfit-Black-Medium',
-                                        width: 'auto',
-                                    }}>
-                                        Reply to
-                                    </Text>
-                                    <Text numberOfLines={1} style={styles.replyText}>
-                                        {reply}
-                                    </Text>
+                        <FlatList
+                            keyboardShouldPersistTaps="handled"
+                            ref={scrollRef}
+                            overScrollMode="never"
+                            style={styles.flatlist}
+                            data={messages}
+                            onEndReached={() => fetchMoreMessages()}
+                            onEndReachedThreshold={0.2}
+                            inverted={true}
+                            renderItem={({ item, index }) => (
+                                <View style={{}}>
+                                    <MessagesItem
+                                        item={item}
+                                        index={index}
+                                        handleLongPress={handleLongPress}
+                                        currentUserUID={currentUserUID}
+                                        searchedUserUID={searchedUserUID}
+                                        setReplyTo={(item) => { setReply(item) }}
+                                        scrollRef={scrollRef}
+                                        inputref={inputRef}
+                                    />
                                 </View>
+                            )}
+                            keyExtractor={(item, index) => index}
+                        />
+                        {isTyping &&
+                            <View style={{
+                                marginBottom: 25,
+                                marginHorizontal: 20,
+                                justifyContent: 'center',
+                                alignItems: 'flex-start',
+                            }}>
+                                <TypingAnimation
+                                    dotColor="rgba(255,255,255,0.5)"
+                                    dotRadius={4}
+                                    dotX={13}
+                                    dotY={6}
+                                    dotMargin={7}
+                                    dotAmplitude={4}
+                                    dotSpeed={0.1}
+                                />
+                            </View>}
+                        {reply &&
+                            <View style={{ marginHorizontal: 10, borderTopColor: 'rgba(128,128,128,0.3)', borderTopWidth: 1, marginTop: 5, paddingVertical: 5 }}>
 
-                                <TouchableOpacity onPress={() => { setReply(null) }}>
-                                    <Ionicons name='close-circle-outline' size={20} color={'#ff9301'} />
-                                </TouchableOpacity>
+                                <View style={styles.replyContainer}>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={{
+                                            color: 'rgba(128,128,128,0.7)',
+                                            fontSize: 12,
+                                            fontFamily: 'Outfit-Black-Medium',
+                                            width: 'auto',
+                                        }}>
+                                            Reply to
+                                        </Text>
+                                        <Text numberOfLines={1} style={styles.replyText}>
+                                            {reply}
+                                        </Text>
+                                    </View>
+
+                                    <TouchableOpacity onPress={() => { setReply(null) }}>
+                                        <Ionicons name='close-circle-outline' size={20} color={'#ff9301'} />
+                                    </TouchableOpacity>
+                                </View>
                             </View>
+
+                        }
+                        <View style={styles.inputContainer}>
+                            <TextInput
+                                numberOfLines={1}
+                                multiline={true}
+                                cursorColor={'#ff9301'}
+                                ref={inputRef}
+                                style={styles.input}
+                                placeholder="Type a message..."
+                                value={input}
+                                onChangeText={setInput}
+                                placeholderTextColor={'rgba(128,128,128,0.6)'}
+                                onSubmitEditing={sendMessage}
+                                returnKeyType="send"
+                            />
+                            <TouchableOpacity onPress={sendMessage}>
+                                <Ionicons name='send' size={27} color={'#FF8C00'} />
+                            </TouchableOpacity>
+
+                            <OptionsMenu
+                                visible={menuVisible}
+                                onClose={() => setMenuVisible(false)}
+                                position={menuPosition}
+                                onOptionSelect={handleOptionSelect}
+                            />
+
+                            <OptionsMenuOtherUser
+                                visible={othermenuVisible}
+                                onClose={() => setotherMenuVisible(false)}
+                                position={menuPosition}
+                                onOptionSelect={handleOptionSelect} />
                         </View>
-
-                    }
-                    <View style={styles.inputContainer}>
-                        <TextInput
-                            cursorColor={'#ff9301'}
-                            ref={inputRef}
-                            style={styles.input}
-                            placeholder="Type a message..."
-                            value={input}
-                            onChangeText={setInput}
-                            placeholderTextColor={'rgba(128,128,128,0.6)'}
-                            onSubmitEditing={sendMessage}
-                            returnKeyType="send"
+                    </SafeAreaView>
+                    :
+                    <View style={[styles.container, { paddingTop: 0, marginTop: 0 }]}>
+                        {messageLoading && <View style={{ backgroundColor: 'transparent' }}>
+                            <ActivityIndicator size="small" color="#FF8C00" />
+                        </View>}
+                        <FlatList
+                            keyboardShouldPersistTaps="handled"
+                            ref={scrollRef}
+                            overScrollMode="never"
+                            style={styles.flatlist}
+                            data={messages}
+                            onEndReached={() => fetchMoreMessages()}
+                            onEndReachedThreshold={0.2}
+                            inverted={true}
+                            renderItem={({ item, index }) => (
+                                <View style={{}}>
+                                    <MessagesItem
+                                        item={item}
+                                        index={index}
+                                        handleLongPress={handleLongPress}
+                                        currentUserUID={currentUserUID}
+                                        searchedUserUID={searchedUserUID}
+                                        setReplyTo={(item) => { setReply(item) }}
+                                        scrollRef={scrollRef}
+                                        inputref={inputRef}
+                                    />
+                                </View>
+                            )}
+                            keyExtractor={(item, index) => index}
                         />
-                        <TouchableOpacity onPress={sendMessage}>
-                            <Ionicons name='send' size={27} color={'#FF8C00'} />
-                        </TouchableOpacity>
+                        {isTyping &&
+                            <View style={{
+                                marginBottom: 25,
+                                marginHorizontal: 20,
+                                justifyContent: 'center',
+                                alignItems: 'flex-start',
+                            }}>
+                                <TypingAnimation
+                                    dotColor="rgba(255,255,255,0.5)"
+                                    dotRadius={4}
+                                    dotX={13}
+                                    dotY={6}
+                                    dotMargin={7}
+                                    dotAmplitude={4}
+                                    dotSpeed={0.1}
+                                />
+                            </View>}
+                        {reply &&
+                            <View style={{ marginHorizontal: 10, borderTopColor: 'rgba(128,128,128,0.3)', borderTopWidth: 1, marginTop: 5, paddingVertical: 5 }}>
 
-                        <OptionsMenu
-                            visible={menuVisible}
-                            onClose={() => setMenuVisible(false)}
-                            position={menuPosition}
-                            onOptionSelect={handleOptionSelect}
-                        />
+                                <View style={styles.replyContainer}>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={{
+                                            color: 'rgba(128,128,128,0.7)',
+                                            fontSize: 12,
+                                            fontFamily: 'Outfit-Black-Medium',
+                                            width: 'auto',
+                                        }}>
+                                            Reply to
+                                        </Text>
+                                        <Text numberOfLines={1} style={styles.replyText}>
+                                            {reply}
+                                        </Text>
+                                    </View>
 
-                        <OptionsMenuOtherUser
-                            visible={othermenuVisible}
-                            onClose={() => setotherMenuVisible(false)}
-                            position={menuPosition}
-                            onOptionSelect={handleOptionSelect} />
+                                    <TouchableOpacity onPress={() => { setReply(null) }}>
+                                        <Ionicons name='close-circle-outline' size={20} color={'#ff9301'} />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+
+                        }
+                        <View style={styles.inputContainer}>
+                            <TextInput
+                                numberOfLines={1}
+                                multiline={true}
+                                cursorColor={'#ff9301'}
+                                ref={inputRef}
+                                style={styles.input}
+                                placeholder="Type a message..."
+                                value={input}
+                                onChangeText={setInput}
+                                placeholderTextColor={'rgba(128,128,128,0.6)'}
+                                onSubmitEditing={sendMessage}
+                                returnKeyType="send"
+                            />
+                            <TouchableOpacity onPress={sendMessage}>
+                                <Ionicons name='send' size={27} color={'#FF8C00'} />
+                            </TouchableOpacity>
+
+                            <OptionsMenu
+                                visible={menuVisible}
+                                onClose={() => setMenuVisible(false)}
+                                position={menuPosition}
+                                onOptionSelect={handleOptionSelect}
+                            />
+
+                            <OptionsMenuOtherUser
+                                visible={othermenuVisible}
+                                onClose={() => setotherMenuVisible(false)}
+                                position={menuPosition}
+                                onOptionSelect={handleOptionSelect} />
+                        </View>
                     </View>
-                </SafeAreaView>
+                }
             </KeyboardAvoidingView >
         </GestureHandlerRootView>
     );
@@ -462,67 +640,17 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         padding: 10,
         marginHorizontal: 10,
+        marginBottom: 5
     },
     input: {
         flex: 1,
         marginRight: 10,
         backgroundColor: 'transparent',
-        fontSize: 18,
-        color: 'white',
-        fontFamily: 'Outfit-Black-Regular'
-    },
-    sentMessage: {
-        alignSelf: 'flex-end',
-        backgroundColor: '#ff9301',
-        borderRadius: 20,
-        padding: 10,
-        marginVertical: 5,
-        marginHorizontal: 10,
-        maxWidth: '70%',
-    },
-    receivedMessage: {
-        alignSelf: 'flex-start',
-        backgroundColor: '#1f1f2d',
-        borderRadius: 20,
-        padding: 10,
-        marginVertical: 5,
-        marginHorizontal: 10,
-        maxWidth: '70%',
-    },
-    sentText: {
-        fontFamily: 'Outfit-Black-Medium',
-        fontSize: 15
-    },
-    receivedText: {
-        color: 'white',
-        fontFamily: 'Outfit-Black-Medium',
-        fontSize: 15
-    },
-    sentReplyText: {
-        fontFamily: 'Outfit-Black-Regular',
-        fontSize: 13,
-        fontStyle: 'italic'
-    },
-    receivedReplyText: {
-        color: 'white',
-        fontFamily: 'Outfit-Black-Regular',
-        fontSize: 13,
-        fontStyle: 'italic'
-    },
-    replyText: {
-        fontFamily: 'Outfit-Black-Regular',
         fontSize: 14,
-        color: 'rgba(255,255,255,0.7)',
-        width: '100%',
+        color: 'white',
+        fontFamily: 'Outfit-Black-Regular',
+        maxHeight: 60,
     },
-    replyContainer: {
-        width: '100%',
-        justifyContent: 'space-between',
-        borderRadius: 6,
-        paddingHorizontal: 3,
-        flexDirection: 'row',
-        alignItems: 'center',
-    }
 });
 
 export default Messages;

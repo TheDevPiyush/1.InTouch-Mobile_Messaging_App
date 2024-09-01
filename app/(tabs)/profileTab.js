@@ -202,14 +202,14 @@ const ProfileTab = () => {
                 </View>
 
                 <Text style={styles.headingText}>If you have any concerns regarding InTouch, feel free to reach out to me.</Text>
-                <TouchableOpacity onPress={() => { openEmail() }}>
+                <TouchableOpacity activeOpacity={0.7} onPress={() => { openEmail() }}>
                     <View style={[styles.containerView, { justifyContent: 'center', alignItems: 'center' }]}>
                         <Text style={[styles.text, { color: '#FF8C00', textAlign: 'center' }]}>Tap here to contact me via E-Mail.</Text>
                     </View>
                 </TouchableOpacity>
 
                 <View>
-                    <TouchableOpacity onPress={handleLogout} style={styles.button}>
+                    <TouchableOpacity activeOpacity={0.7} onPress={handleLogout} style={styles.button}>
                         <Text style={styles.btnText}>Log Out</Text>
                     </TouchableOpacity>
                 </View>

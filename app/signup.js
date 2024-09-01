@@ -186,7 +186,7 @@ const Signup = () => {
                             />
                         </View>
                         {/* SIGN UP BUTTON */}
-                        <TouchableOpacity disabled={disabled} style={styles.button} onPress={handleSignUp}>
+                        <TouchableOpacity activeOpacity={0.7} disabled={disabled} style={styles.button} onPress={handleSignUp}>
                             {loading
                                 ? <ActivityIndicator size={'small'} color={'#1f1f2d'} />
                                 : <Text style={styles.buttonText}>Sign Up</Text>
@@ -221,13 +221,13 @@ const styles = StyleSheet.create({
         marginVertical: 5
     },
     labelStyle: {
-        marginVertical: 10,
+        marginVertical: 7,
         color: 'rgba(255,255,255,0.7)',
-        fontSize: 20,
+        fontSize: 17,
         fontFamily: 'Outfit-Black-Regular',
     },
     inputStyle: {
-        fontSize: 20,
+        fontSize: 17,
         padding: 12, width: '100%', height: '100%', color: 'white',
         fontFamily: 'Outfit-Black-Medium'
     },
@@ -239,25 +239,25 @@ const styles = StyleSheet.create({
         backgroundColor: '#ff9301',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 17,
+        paddingVertical: 13,
         width: '100%',
         marginHorizontal: 'auto',
-        marginVertical: 20,
+        marginVertical: 17,
         borderRadius: 12
     },
     buttonText: {
         color: '#171722',
-        fontSize: 20,
+        fontSize: 17,
         fontFamily: 'Outfit-Black-Bold',
     },
     haveAccountText: {
         color: 'rgba(255,255,255,0.7)',
-        fontSize: 16,
+        fontSize: 15,
         fontFamily: 'Outfit-Black-Regular',
     },
     loginbuttonText: {
         fontFamily: 'Outfit-Black-Bold',
-        fontSize: 16,
+        fontSize: 15,
         color: '#FF8C00'
     },
 })

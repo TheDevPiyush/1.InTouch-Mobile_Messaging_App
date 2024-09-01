@@ -46,6 +46,7 @@ const MessagesItem = ({ item, index, handleLongPress, currentUserUID, searchedUs
 
 
                 <TouchableOpacity
+                    delayLongPress={200}
                     style={item.from === currentUserUID ? [styles.sentMessage, { borderBottomRightRadius: index === 0 ? 0 : 20 }] : [styles.receivedMessage, { borderTopLeftRadius: index === 0 ? 0 : 20 }]}
                     activeOpacity={0.75}
                     onLongPress={(e) => handleLongPress(e, item)}>
@@ -73,7 +74,13 @@ const MessagesItem = ({ item, index, handleLongPress, currentUserUID, searchedUs
                                     textAlign: item.from === currentUserUID ? 'right' : 'left',
 
                                 }}>
-                                    {item.timestamp.toDate().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }).replace(':', ':')}
+                                    {item.from === currentUserUID &&
+                                        <Text>
+                                            {item.messageStatus === "seen" ? "Seen " : "Sent "}
+                                        </Text>
+                                    }
+
+                                    {item.timestamp.toDate().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }).replace(':', ':')}
                                 </Text>
                             </View>
                         }
@@ -117,9 +124,6 @@ const MessagesItem = ({ item, index, handleLongPress, currentUserUID, searchedUs
                                 </Text>
                             </View>
                         }
-
-
-
                     </View>
 
                 </TouchableOpacity>
@@ -135,7 +139,7 @@ const styles = StyleSheet.create({
         marginVertical: 3,
         marginHorizontal: 10,
         maxWidth: '70%',
-        padding: 5,
+        paddingHorizontal: 4,
         marginVertical: 5
 
     },
@@ -146,20 +150,17 @@ const styles = StyleSheet.create({
         marginVertical: 5,
         marginHorizontal: 10,
         maxWidth: '70%',
-        padding: 5,
+        paddingHorizontal: 4,
         marginVertical: 5
-
-
     },
     sentText: {
         fontFamily: 'Outfit-Black-Medium',
-        fontSize: 15,
+        fontSize: 14,
     },
     receivedText: {
         color: 'white',
         fontFamily: 'Outfit-Black-Medium',
-        fontSize: 15,
-        overflow: 'visible'
+        fontSize: 14,
     },
     sentReplyText: {
         fontFamily: 'Outfit-Black-Regular',

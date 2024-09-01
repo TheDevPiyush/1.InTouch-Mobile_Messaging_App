@@ -51,12 +51,12 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         justifyContent: 'center',
         alignItems: 'center',
-        height: 47,
-        width: 47
+        height: 40,
+        width: 40
     },
     profilePic: {
-        height: 47,
-        width: 47,
+        height: 40,
+        width: 40,
         borderRadius: 50,
     },
     usernameStyle: {

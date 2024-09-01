@@ -11,7 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { useNavigation } from 'expo-router';
-import logo from '../assets/logo-color.png'
+import logo from '../assets/photo.jpg'
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -120,6 +120,7 @@ const Login = () => {
                             <Image source={logo}
                                 style={{
                                     height: 50, width: 50,
+                                    borderRadius: 50,
                                     alignItems: 'center',
                                 }} resizeMode='contain' />
                             <Text style={{

@@ -9,7 +9,6 @@ import {
     TouchableOpacity,
     ActivityIndicator,
     Dimensions,
-    AppState,
 } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';

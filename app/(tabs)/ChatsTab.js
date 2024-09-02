@@ -10,7 +10,6 @@ import { RootSiblingParent } from 'react-native-root-siblings';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import * as Linking from 'expo-linking';
-import Constants from 'expo-constants'
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 const ChatsTab = () => {
     const [chats, setChats] = useState([]);
@@ -44,7 +43,7 @@ const ChatsTab = () => {
         });
 
         return () => unsubscribe();
-    }, [])
+    }, [loaded])
 
 
     useEffect(() => {
@@ -106,8 +105,6 @@ const ChatsTab = () => {
 
         });
         registerForPushNotificationsAsync();
-
-
 
         return () => {
             unsubscribe();

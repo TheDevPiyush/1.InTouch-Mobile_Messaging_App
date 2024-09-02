@@ -1,19 +1,19 @@
 import {
     View, Text, ScrollView,
     TextInput, StyleSheet, StatusBar,
-    TouchableOpacity, Image, KeyboardAvoidingView,
+    TouchableOpacity, KeyboardAvoidingView,
     Platform,
     Alert,
     ActivityIndicator
 } from 'react-native'
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { useNavigation } from 'expo-router';
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { auth } from '../firebaseConfig';
 SplashScreen.preventAutoHideAsync();
 
 const Login = () => {
@@ -31,47 +31,44 @@ const Login = () => {
     const emailRef = useRef();
     const passRef = useRef();
     const [loading, setloading] = useState(false)
-    const auth = getAuth()
-    const [isLoggedIn, setisLoggedIn] = useState(null)
 
     useEffect(() => {
+        if (error) {
+            console.log('Font loading error:', error);
+        }
         if (loaded || error) SplashScreen.hideAsync();
     }, [loaded, error]);
 
-    useLayoutEffect(() => { if (loaded) redirectUserIfLoggedIn() }, [loaded])
+    useEffect(() => {
+        if (loaded) {
+            // Redirect the user, if already logged in
+            auth.onAuthStateChanged(async (user) => {
+                if (user) {
+                    console.log('yes user')
+                    AsyncStorage.setItem('LoggedIn', 'true')
+                    setloading(true)
+                    setdisabled(true)
+                    navigation.reset({ index: 0, routes: [{ name: "(tabs)" }] });
+                }
+                else {
+                    AsyncStorage.setItem('LoggedIn', 'false')
+                    setloading(false)
+                    setdisabled(true)
+
+                }
+            })
+        }
+        return () => {
+            setloading(false)
+            setdisabled(false)
+        }
+    }, [loaded])
 
 
     useEffect(() => {
         if (email.trim() !== '' && password.trim() !== '') setdisabled(false)
         else setdisabled(true)
     }, [email, password])
-
-
-    useEffect(() => {
-        if (isLoggedIn) {
-            navigation.reset({ index: 0, routes: [{ name: "(tabs)" }] });
-        }
-        return () => {
-            setisLoggedIn(false)
-            setloading(false)
-            setdisabled(false)
-        }
-    }, [isLoggedIn])
-
-    const redirectUserIfLoggedIn = async () => {
-        try {
-            const loginInfo = await AsyncStorage.getItem("LoggedIn")
-            if (loginInfo === "true") {
-                setloading(true)
-                setdisabled(true)
-                setisLoggedIn(true)
-            }
-        } catch (error) {
-            console.log(error)
-            Alert.alert('Something went wrong.', 'Log in details not found or expired. Please log in again.')
-        }
-    }
-
 
     const signInWithEmail = async () => {
         try {

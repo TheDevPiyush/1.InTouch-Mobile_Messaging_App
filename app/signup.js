@@ -1,7 +1,7 @@
 import {
     View, Text, ScrollView,
     TextInput, StyleSheet, StatusBar,
-    TouchableOpacity, Image, KeyboardAvoidingView,
+    TouchableOpacity, KeyboardAvoidingView,
     Platform,
     Alert,
     ActivityIndicator

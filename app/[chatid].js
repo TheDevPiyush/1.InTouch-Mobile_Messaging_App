@@ -43,6 +43,7 @@ import MessagesItem from './components/Messages';
 import CustomHeader from './components/CustomHeader ';
 import * as Notifications from 'expo-notifications'
 import { TypingAnimation } from 'react-native-typing-animation';
+import RightSideMenu from './components/RightSideMenu';
 const Messages = () => {
 
     const [loaded] = useFonts({
@@ -53,7 +54,7 @@ const Messages = () => {
 
     const { username, chatID, searchedUserUID, currentUserUID, userpicture } = useLocalSearchParams();
     const navigation = useNavigation();
-    const scrollRef = useRef(null);
+
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [newMessage, setNewMessage] = useState([]);
@@ -66,6 +67,12 @@ const Messages = () => {
     const [pushToken, setPushToken] = useState(null)
     const [lastVisible, setLastVisible] = useState(null);
     const [messageLoading, setMessageLoading] = useState(false)
+    const [currentUserName, setCurrentUserName] = useState('')
+    const [blockStatus, setBlockStatus] = useState({
+        currentUserBlocked: false,
+        otherUserBlocked: false,
+    });
+    const scrollRef = useRef(null);
     const inputRef = useRef(null)
     const typingTimeoutRef = useRef(null);
 
@@ -80,39 +87,47 @@ const Messages = () => {
         }
     }, [loaded])
 
-
     useEffect(() => {
         if (username) navigation.setOptions({
             headerTitle: username,
-            headerLeft: () => <CustomHeader userpicture={userpicture} />
+            headerLeft: () => <CustomHeader userpicture={userpicture} />,
+            headerRight: () => <RightSideMenu currentUserUID={currentUserUID} searchedUserUID={searchedUserUID} chatID={chatID} username={username} />,
         });
     }, [navigation, username, loaded]);
 
-
     useEffect(() => {
         if (chatID) {
-            const unsubscribe = listenToMessages(chatID, setMessages);
-            getPushToken();
-            return () => unsubscribe();
-        }
-    }, [chatID, loaded]);
 
-
-
-    useEffect(() => {
-        if (chatID) {
             const chatDocRef = doc(firestore, 'Chats', chatID);
+
+            const ListenToMessageUnsubscribe = listenToMessages(chatID, setMessages);
+
             const unsubscribe = onSnapshot(chatDocRef, (doc) => {
                 if (doc.exists()) {
                     setIsTyping(doc.data()[searchedUserUID]);
                 }
             });
+
+            const BlockUnsubscribe = onSnapshot(chatDocRef, (chatDocSnap) => {
+                if (chatDocSnap.exists()) {
+                    const blockData = chatDocSnap.data().Block || {};
+                    setBlockStatus({
+                        currentUserBlocked: blockData[currentUserUID] || false,
+                        otherUserBlocked: blockData[searchedUserUID] || false,
+                    });
+                }
+            });
+
+            getPushToken();
             updateSeenStatus();
             Notifications.setNotificationHandler({});
-
+            return () => {
+                unsubscribe();
+                BlockUnsubscribe();
+                ListenToMessageUnsubscribe()
+            }
         }
     }, [loaded, chatID])
-
 
     useEffect(() => {
         const chatDocRef = doc(firestore, 'Chats', chatID);
@@ -223,6 +238,10 @@ const Messages = () => {
         const userDocRef = doc(firestore, 'Users', searchedUserUID);
         const userDoc = await getDoc(userDocRef);
         setPushToken(userDoc.data().pushToken);
+
+        const CurrentUserDocRef = doc(firestore, 'Users', currentUserUID);
+        const CurrentUserDoc = await getDoc(CurrentUserDocRef);
+        setCurrentUserName(CurrentUserDoc.data().username)
     }
 
     const sendMessageNotification = async (messageData) => {
@@ -231,7 +250,7 @@ const Messages = () => {
                 const message = {
                     to: pushToken,
                     sound: "default",
-                    title: `${username}`,
+                    title: `${currentUserName}`,
                     body: `${messageData}`,
                     data: { chatID },
                     priority: "high",
@@ -424,7 +443,7 @@ const Messages = () => {
                             onEndReachedThreshold={0.2}
                             inverted={true}
                             renderItem={({ item, index }) => (
-                                <View style={{}}>
+                                <View style={{ marginBottom: 15 }}>
                                     <MessagesItem
                                         item={item}
                                         index={index}
@@ -482,22 +501,32 @@ const Messages = () => {
 
                         }
                         <View style={styles.inputContainer}>
-                            <TextInput
-                                numberOfLines={1}
-                                multiline={true}
-                                cursorColor={'#ff9301'}
-                                ref={inputRef}
-                                style={styles.input}
-                                placeholder="Type a message..."
-                                value={input}
-                                onChangeText={setInput}
-                                placeholderTextColor={'rgba(128,128,128,0.6)'}
-                                onSubmitEditing={sendMessage}
-                                returnKeyType="send"
-                            />
-                            <TouchableOpacity onPress={sendMessage}>
-                                <Ionicons name='send' size={27} color={'#FF8C00'} />
-                            </TouchableOpacity>
+                            {blockStatus.currentUserBlocked && blockStatus.otherUserBlocked ? (
+                                <Text style={styles.blockedText}>Conversation is blocked on both sides.</Text>
+                            ) : blockStatus.currentUserBlocked ? (
+                                <Text style={styles.blockedText}>You have blocked this conversation.</Text>
+                            ) : blockStatus.otherUserBlocked ? (
+                                <Text style={styles.blockedText}>{username} has blocked this conversation.</Text>
+                            ) : (
+                                <View style={{ flexDirection: 'row' }}>
+                                    <TextInput
+                                        numberOfLines={1}
+                                        multiline={true}
+                                        cursorColor={'#ff9301'}
+                                        ref={inputRef}
+                                        style={styles.input}
+                                        placeholder="Type a message..."
+                                        value={input}
+                                        onChangeText={setInput}
+                                        placeholderTextColor={'rgba(128,128,128,0.6)'}
+                                        onSubmitEditing={sendMessage}
+                                        returnKeyType="send"
+                                    />
+                                    <TouchableOpacity onPress={sendMessage}>
+                                        <Ionicons name='send' size={27} color={'#FF8C00'} />
+                                    </TouchableOpacity>
+                                </View>
+                            )}
 
                             <OptionsMenu
                                 visible={menuVisible}
@@ -586,22 +615,32 @@ const Messages = () => {
 
                         }
                         <View style={styles.inputContainer}>
-                            <TextInput
-                                numberOfLines={1}
-                                multiline={true}
-                                cursorColor={'#ff9301'}
-                                ref={inputRef}
-                                style={styles.input}
-                                placeholder="Type a message..."
-                                value={input}
-                                onChangeText={setInput}
-                                placeholderTextColor={'rgba(128,128,128,0.6)'}
-                                onSubmitEditing={sendMessage}
-                                returnKeyType="send"
-                            />
-                            <TouchableOpacity onPress={sendMessage}>
-                                <Ionicons name='send' size={27} color={'#FF8C00'} />
-                            </TouchableOpacity>
+                            {blockStatus.currentUserBlocked && blockStatus.otherUserBlocked ? (
+                                <Text style={styles.blockedText}>Conversation is blocked on both sides.</Text>
+                            ) : blockStatus.currentUserBlocked ? (
+                                <Text style={styles.blockedText}>You have blocked this conversation.</Text>
+                            ) : blockStatus.otherUserBlocked ? (
+                                <Text style={styles.blockedText}>{username} has blocked this conversation.</Text>
+                            ) : (
+                                <View style={{ flexDirection: 'row' }}>
+                                    <TextInput
+                                        numberOfLines={1}
+                                        multiline={true}
+                                        cursorColor={'#ff9301'}
+                                        ref={inputRef}
+                                        style={styles.input}
+                                        placeholder="Type a message..."
+                                        value={input}
+                                        onChangeText={setInput}
+                                        placeholderTextColor={'rgba(128,128,128,0.6)'}
+                                        onSubmitEditing={sendMessage}
+                                        returnKeyType="send"
+                                    />
+                                    <TouchableOpacity onPress={sendMessage}>
+                                        <Ionicons name='send' size={27} color={'#FF8C00'} />
+                                    </TouchableOpacity>
+                                </View>
+                            )}
 
                             <OptionsMenu
                                 visible={menuVisible}
@@ -630,7 +669,7 @@ const styles = StyleSheet.create({
     flatlist: {
         flexGrow: 1,
         backgroundColor: '#171722',
-        paddingBottom: 10,
+        // paddingBottom: 10,
     },
     inputContainer: {
         flexDirection: 'row',
@@ -640,6 +679,13 @@ const styles = StyleSheet.create({
         padding: 10,
         marginHorizontal: 10,
         marginBottom: 5
+    },
+    blockedText: {
+        fontSize: 14,
+        color: '#FF8C00',
+        fontFamily: 'Outfit-Black-Regular',
+        textAlign: 'center',
+        width: '100%',
     },
     input: {
         flex: 1,

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, PanResponder, Animated } from 'react-native';
-
+import Ionicons from '@expo/vector-icons/Ionicons';
 const MessagesItem = ({ item, index, handleLongPress, currentUserUID, searchedUserUID, setReplyTo, inputref }) => {
     const translateX = useRef(new Animated.Value(0)).current;
 
@@ -74,13 +74,13 @@ const MessagesItem = ({ item, index, handleLongPress, currentUserUID, searchedUs
                                     textAlign: item.from === currentUserUID ? 'right' : 'left',
 
                                 }}>
+                                    {`${item.timestamp.toDate().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }).replace(':', ':')}  `}
                                     {item.from === currentUserUID &&
                                         <Text>
-                                            {item.messageStatus === "seen" ? "Seen " : "Sent "}
+                                            {item.messageStatus === "seen" ? <Ionicons name="checkmark-done-sharp" size={15} color="#4c7fb3" /> : <Ionicons name="checkmark-sharp" size={16} color="black" />}
                                         </Text>
                                     }
 
-                                    {item.timestamp.toDate().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }).replace(':', ':')}
                                 </Text>
                             </View>
                         }
@@ -136,22 +136,21 @@ const styles = StyleSheet.create({
         alignSelf: 'flex-end',
         backgroundColor: '#ff9301',
         borderRadius: 20,
-        marginVertical: 3,
         marginHorizontal: 10,
         maxWidth: '70%',
         paddingHorizontal: 4,
-        marginVertical: 5
+        marginBottom: 7
 
     },
     receivedMessage: {
         alignSelf: 'flex-start',
         backgroundColor: '#1f1f2d',
         borderRadius: 20,
-        marginVertical: 5,
         marginHorizontal: 10,
         maxWidth: '70%',
         paddingHorizontal: 4,
-        marginVertical: 5
+        marginBottom: 7
+
     },
     sentText: {
         fontFamily: 'Outfit-Black-Medium',

@@ -52,7 +52,7 @@ const MessagesItem = ({ item, index, handleLongPress, currentUserUID, searchedUs
                     onLongPress={(e) => handleLongPress(e, item)}>
 
                     <View style={{ flexDirection: 'column', }}>
-                        <View style={{ justifyContent: 'flex-start', padding: 5 }}>
+                        <View style={{ justifyContent: 'flex-start', padding: 3 }}>
                             {item.replyTo !== null &&
                                 <Text style={item.from === currentUserUID ? styles.sentReplyText : styles.receivedReplyText}>
                                     {item.replyTo}
@@ -66,6 +66,8 @@ const MessagesItem = ({ item, index, handleLongPress, currentUserUID, searchedUs
                             <View style={{
                                 alignSelf: 'flex-end',
                                 paddingHorizontal: 3,
+                                alignItems: 'center',
+                                justifyContent: 'center'
 
                             }}>
                                 <Text style={{
@@ -88,7 +90,7 @@ const MessagesItem = ({ item, index, handleLongPress, currentUserUID, searchedUs
                         {item.Reactions?.[searchedUserUID] &&
                             <View style={{
                                 position: 'absolute',
-                                bottom: -15,
+                                bottom: -10,
                                 zIndex: 100,
                                 right: item.from === currentUserUID ? 0 : null,
                                 left: item.from === currentUserUID ? null : 22,
@@ -108,7 +110,7 @@ const MessagesItem = ({ item, index, handleLongPress, currentUserUID, searchedUs
                         {item.Reactions?.[currentUserUID] &&
                             <View style={{
                                 position: 'absolute',
-                                bottom: -15,
+                                bottom: -10,
                                 zIndex: 100,
                                 right: item.from === currentUserUID ? 22 : null,
                                 left: item.from === currentUserUID ? null : 0,
@@ -165,6 +167,8 @@ const styles = StyleSheet.create({
         fontFamily: 'Outfit-Black-Regular',
         fontSize: 14,
         fontStyle: 'italic',
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(0,0,0,0.3)'
     },
     receivedReplyText: {
         color: 'rgba(255,255,255,0.7)',
@@ -172,21 +176,5 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontStyle: 'italic',
     },
-    replyText: {
-        fontFamily: 'Outfit-Black-Regular',
-        fontSize: 13,
-        fontStyle: 'italic',
-        color: 'rgba(128,128,128,0.6)',
-        width: '90%'
-    },
-    replyContainer: {
-        backgroundColor: 'rgba(0,0,0,0.1)',
-        marginHorizontal: 8,
-        width: '100%',
-        paddingHorizontal: 7,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between'
-    }
 })
 export default MessagesItem

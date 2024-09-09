@@ -41,7 +41,6 @@ const Login = () => {
 
     useEffect(() => {
         if (loaded) {
-            // Redirect the user, if already logged in
             auth.onAuthStateChanged(async (user) => {
                 if (user) {
                     console.log('yes user')

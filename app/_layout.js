@@ -12,6 +12,7 @@ const Layout = () => {
         <Stack>
             <Stack.Screen name='index' options={{ headerShown: false }} />
             <Stack.Screen name='signup' options={{ headerShown: false }} />
+            <Stack.Screen name='Login' options={{ headerShown: false }} />
             <Stack.Screen name='PasswordReset' options={{ headerShown: false }} />
             <Stack.Screen name='SearchModal' options={{
                 presentation: 'modal', title: "Search", headerStyle: { backgroundColor: '#1f1f2d' }, headerTintColor: '#FF8C00',

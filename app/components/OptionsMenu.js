@@ -11,6 +11,7 @@ const OptionsMenu = ({ visible, onClose, position, onOptionSelect }) => {
     });
     const reactions = {
         laugh: '😂',
+        smile: '😁',
         cry: '😭',
         like: '👍',
         heart: '❤',
@@ -52,6 +53,9 @@ const OptionsMenu = ({ visible, onClose, position, onOptionSelect }) => {
                             <TouchableOpacity activeOpacity={0.6} onPress={() => onOptionSelect('heart')} >
                                 <Text style={{ fontSize: 20 }}>{reactions.heart}</Text>
                             </TouchableOpacity>
+                            <TouchableOpacity activeOpacity={0.6} onPress={() => onOptionSelect('smile')} >
+                                <Text style={{ fontSize: 20 }}>{reactions.smile}</Text>
+                            </TouchableOpacity >
                             <TouchableOpacity activeOpacity={0.6} onPress={() => onOptionSelect('laugh')} >
                                 <Text style={{ fontSize: 20 }}>{reactions.laugh}</Text>
                             </TouchableOpacity>

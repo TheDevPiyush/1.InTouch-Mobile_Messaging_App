@@ -316,11 +316,12 @@ const Messages = () => {
         }
         else if (option === "heart") {
             toggleReaction('heart')
-
+        }
+        else if (option === "smile") {
+            toggleReaction('smile')
         }
         else if (option === "laugh") {
             toggleReaction('laugh')
-
         }
         else if (option === "cry") {
             toggleReaction('cry')
@@ -346,6 +347,9 @@ const Messages = () => {
                     break;
                 case "heart":
                     newReaction = '❤';
+                    break;
+                case "smile":
+                    newReaction = '😁';
                     break;
                 case "laugh":
                     newReaction = '😂';
@@ -550,7 +554,6 @@ const Messages = () => {
                         <FlatList
                             keyboardShouldPersistTaps="handled"
                             ref={scrollRef}
-                            overScrollMode="never"
                             style={styles.flatlist}
                             data={messages}
                             onEndReached={() => fetchMoreMessages()}
@@ -593,23 +596,26 @@ const Messages = () => {
                             <View style={{ marginHorizontal: 10, borderTopColor: 'rgba(128,128,128,0.3)', borderTopWidth: 1, marginTop: 5, paddingVertical: 5 }}>
 
                                 <View style={styles.replyContainer}>
-                                    <View style={{ flex: 1 }}>
-                                        <Text style={{
-                                            color: 'rgba(128,128,128,0.7)',
-                                            fontSize: 12,
-                                            fontFamily: 'Outfit-Black-Medium',
-                                            width: 'auto',
-                                        }}>
-                                            Reply to
-                                        </Text>
-                                        <Text numberOfLines={1} style={styles.replyText}>
-                                            {reply}
-                                        </Text>
-                                    </View>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
 
-                                    <TouchableOpacity onPress={() => { setReply(null) }}>
-                                        <Ionicons name='close-circle-outline' size={20} color={'#ff9301'} />
-                                    </TouchableOpacity>
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={{
+                                                color: 'rgba(128,128,128,0.7)',
+                                                fontSize: 12,
+                                                fontFamily: 'Outfit-Black-Medium',
+                                                width: 'auto',
+                                            }}>
+                                                Reply to
+                                            </Text>
+                                            <Text numberOfLines={1} style={styles.replyText}>
+                                                {reply}
+                                            </Text>
+                                        </View>
+
+                                        <TouchableOpacity onPress={() => { setReply(null) }}>
+                                            <Ionicons name='close-circle-outline' size={20} color={'#ff9301'} />
+                                        </TouchableOpacity>
+                                    </View>
                                 </View>
                             </View>
 
@@ -622,7 +628,7 @@ const Messages = () => {
                             ) : blockStatus.otherUserBlocked ? (
                                 <Text style={styles.blockedText}>{username} has blocked this conversation.</Text>
                             ) : (
-                                <View style={{ flexDirection: 'row' }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                     <TextInput
                                         numberOfLines={1}
                                         multiline={true}
@@ -669,7 +675,6 @@ const styles = StyleSheet.create({
     flatlist: {
         flexGrow: 1,
         backgroundColor: '#171722',
-        // paddingBottom: 10,
     },
     inputContainer: {
         flexDirection: 'row',
@@ -696,6 +701,21 @@ const styles = StyleSheet.create({
         fontFamily: 'Outfit-Black-Regular',
         maxHeight: 60,
     },
+    replyText: {
+        fontFamily: 'Outfit-Black-Regular',
+        fontSize: 13,
+        fontStyle: 'italic',
+        color: 'rgba(128,128,128,0.6)',
+        width: '90%'
+    },
+    replyContainer: {
+        backgroundColor: 'rgba(0,0,0,0.1)',
+        marginHorizontal: 8,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 2,
+        justifyContent: 'space-between',
+    }
 });
 
 export default Messages;

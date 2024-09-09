@@ -1,10 +1,10 @@
-import { View, Text, TextInput, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TextInput, StyleSheet, FlatList, TouchableOpacity, Image, Alert } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { useFonts } from 'expo-font';
-import { collection, query, where, getDocs, startAt, endAt, setDoc, doc, getDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, setDoc, doc, getDoc } from "firebase/firestore";
 import { auth, firestore } from '../firebaseConfig';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { router, useNavigation, usePathname } from 'expo-router';
+import { router, useNavigation } from 'expo-router';
 
 const SearchModal = () => {
 
@@ -38,7 +38,7 @@ const SearchModal = () => {
         try {
             setNotFound(false)
             const usersRef = collection(firestore, "Users");
-            const q = query(usersRef, where("username", ">=", search), where("username", "<=", search + '\uf8ff'));
+            const q = query(usersRef, where("uid", ">=", search), where("uid", "<=", search + '\uf8ff'));
             const querySnapshot = await getDocs(q);
             const usersList = [];
             querySnapshot.forEach((doc) => {
@@ -73,31 +73,31 @@ const SearchModal = () => {
                 });
             }
             navigation.goBack();
-            router.push({ pathname: '/[chatid]', params: { username: item.username, chatID: chatID, searchedUserUID: searchedUserUID, currentUserUID: currentUserUID, userpicture :  item.profilePicUrl} });
+            router.push({ pathname: '/[chatid]', params: { username: item.username, chatID: chatID, searchedUserUID: searchedUserUID, currentUserUID: currentUserUID, userpicture: item.profilePicUrl } });
 
         } catch (error) {
-            console.error("Error checking or creating chat document: ", error);
+            Alert.alert("Something went wrong", 'Could not create a conversation.');
         }
     };
 
     return (
         <View style={styles.container}>
             <View>
-                <Text style={{ marginVertical: 10, fontSize: 18, color: 'rgba(128,128,128,0.6)' }}>Search a friend</Text>
+                <Text style={{ marginVertical: 7, fontSize: 15, color: 'rgba(128,128,128,0.6)', fontFamily: 'Outfit-Black-Medium' }}>Search a friend with their User ID.</Text>
                 <View
                     style={[
                         styles.inputContainer, focused === "search"
                         && styles.focusInput]}>
                     <TextInput
-                    cursorColor={'#FF8C00'}
+                        cursorColor={'#FF8C00'}
                         keyboardType='default'
                         returnKeyType='next'
                         onChangeText={text =>
-                            setSearch(text.toLowerCase().replace(/\s+/g, ''))}
+                            setSearch(text.replace(/\s+/g, ''))}
                         onFocus={() => { setFocused("search") }}
                         style={styles.inputStyle}
                         value={search}
-                        placeholder="peterparker@22"
+                        placeholder="EsuLKdf5u0gJr669iFJb0KdqNb42"
                         placeholderTextColor='rgba(128, 128,128,0.6)'
                     />
                 </View>
@@ -107,11 +107,12 @@ const SearchModal = () => {
             }}>User not found!</Text>
 
                 : <FlatList
+                    keyboardShouldPersistTaps='handled'
                     data={users}
                     keyExtractor={(item, index) => index.toString()}
                     renderItem={({ item }) => (
                         <View style={styles.searchItem} >
-                            <TouchableOpacity onPress={() => handleUserSelect(item)} style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <TouchableOpacity activeOpacity={0.6} onPress={() => handleUserSelect(item)} style={{ flexDirection: 'row', alignItems: 'center' }}>
                                 {item.profilePicUrl ?
                                     <Image style={{ width: 45, height: 45, borderRadius: 50 }} source={{ uri: item.profilePicUrl }} /> :
                                     <Ionicons name='person-circle' size={35} color={'#FF8c00'} />
@@ -146,7 +147,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
     },
     inputStyle: {
-        fontSize: 18,
+        fontSize: 14,
         padding: 12, width: '100%', height: '100%', color: 'white',
         fontFamily: 'Outfit-Black-Medium'
     },

@@ -114,7 +114,7 @@ const Signup = () => {
                 }}>
                     {/* Main View */}
                     <View style={{
-                        marginTop: '8%', marginHorizontal: 15
+                        marginTop: '1%', marginHorizontal: 15
                     }}>
                         <Text style={{
                             marginVertical: '5%',

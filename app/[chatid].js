@@ -560,7 +560,7 @@ const Messages = () => {
                             onEndReachedThreshold={0.2}
                             inverted={true}
                             renderItem={({ item, index }) => (
-                                <View style={{}}>
+                                <View>
                                     <MessagesItem
                                         item={item}
                                         index={index}
@@ -628,7 +628,7 @@ const Messages = () => {
                             ) : blockStatus.otherUserBlocked ? (
                                 <Text style={styles.blockedText}>{username} has blocked this conversation.</Text>
                             ) : (
-                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center',flexGrow:1 }}>
                                     <TextInput
                                         numberOfLines={1}
                                         multiline={true}
@@ -696,7 +696,7 @@ const styles = StyleSheet.create({
         flex: 1,
         marginRight: 10,
         backgroundColor: 'transparent',
-        fontSize: 14,
+        fontSize: Platform.OS=='web'? 20: 14,
         color: 'white',
         fontFamily: 'Outfit-Black-Regular',
         maxHeight: 60,

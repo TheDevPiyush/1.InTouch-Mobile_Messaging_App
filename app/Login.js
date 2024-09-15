@@ -103,10 +103,10 @@ const Login = () => {
                 <ScrollView overScrollMode='never' keyboardShouldPersistTaps="handled" contentContainerStyle={{ flexGrow: 1 }}>
                     {/* Main View */}
                     <View style={{
-                        marginTop: '8%', marginHorizontal: 15
+                        marginTop: '1%', marginHorizontal: 15
                     }}>
                         <Text style={{
-                            marginVertical: '7%',
+                            marginVertical: '5%',
                             color: 'rgba(255,255,255,0.85)',
                             fontSize: 35,
                             fontFamily: 'Outfit-Black-Medium',

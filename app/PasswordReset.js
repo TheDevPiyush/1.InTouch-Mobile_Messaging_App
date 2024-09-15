@@ -68,7 +68,7 @@ const PasswordReset = () => {
     return (
         <GestureHandlerRootView>
             <SafeAreaView style={styles.main}>
-                <ScrollView overScrollMode='never' keyboardShouldPersistTaps="handled" style={{ flex: 1, paddingTop: '15%', backgroundColor: 'transparent' }}>
+                <ScrollView overScrollMode='never' keyboardShouldPersistTaps="handled" style={{ flex: 1, paddingTop: '5%', backgroundColor: 'transparent', paddingHorizontal:10 }}>
                     <Text style={{
                         color: 'white',
                         fontSize: 30,

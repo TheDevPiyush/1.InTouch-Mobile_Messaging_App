@@ -3,7 +3,7 @@
     "name": "InTouch",
     "slug": "InTouch",
     "scheme": "intouch",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "orientation": "portrait",
     "icon": "./assets/logo-color.png",
     "userInterfaceStyle": "dark",
@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.thedevpiyush.InTouch",
-      "buildNumber": "6.0.0"
+      "buildNumber": "7.0.0"
     },
     "android": {
       "adaptiveIcon": {
@@ -23,7 +23,7 @@
         "backgroundColor": "#171722"
       },
       "package": "com.thedevpiyush.InTouch",
-      "versionCode": 6,
+      "versionCode": 7,
       "googleServicesFile": "./google-services.json",
       "useNextNotificationsApi": true,
       "permissions": [

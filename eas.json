@@ -2,7 +2,7 @@
   "cli": {
     "version": ">= 3.0.0"
   },
-  "build": {
+  "buildd": {
     "development": {
       "developmentClient": true,
       "distribution": "internal",

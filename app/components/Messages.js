@@ -1,9 +1,40 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, PanResponder, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, PanResponder, Animated, Linking } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-const MessagesItem = ({ item, index, handleLongPress, currentUserUID, searchedUserUID, setReplyTo, inputref }) => {
-    const translateX = useRef(new Animated.Value(0)).current;
+import { useFonts } from "expo-font";
 
+const formatMessageText = (text) => {
+    const regex = /(https?:\/\/[^\s]+|www\.[^\s]+|[^\s]+\.[a-z]{2,})/gi;
+    const parts = text.split(regex);
+
+    return parts.map((part, index) => {
+        if (regex.test(part)) {
+            const url = part.startsWith('http') ? part : `https://${part}`;
+            return (
+                <Text
+                    key={index}
+                    style={{ color: 'dodgerblue', textDecorationLine: 'underline' }}
+                    onPress={() => Linking.openURL(url)}
+                >
+                    {part}
+                </Text>
+            );
+        } else {
+            return <Text key={index}>{part}</Text>;
+        }
+    });
+};
+
+const MessagesItem = ({ item, index, handleLongPress, currentUserUID, searchedUserUID, setReplyTo, inputref }) => {
+
+
+    const [loaded] = useFonts({
+        "Outfit-Black-Regular": require("../../assets/Outfit-Regular.ttf"),
+        "Outfit-Black-Medium": require("../../assets/Outfit-Medium.ttf"),
+        "Outfit-Black-Bold": require("../../assets/Outfit-Bold.ttf"),
+    });
+
+    const translateX = useRef(new Animated.Value(0)).current;
 
     const panResponder = PanResponder.create({
         onMoveShouldSetPanResponder: (event, gestureState) => {
@@ -19,7 +50,7 @@ const MessagesItem = ({ item, index, handleLongPress, currentUserUID, searchedUs
                 setReplyTo(item.text);
                 setTimeout(() => {
                     inputref.current.focus();
-                }, 300)
+                }, 300);
             }
             Animated.spring(translateX, {
                 toValue: 0,
@@ -43,96 +74,118 @@ const MessagesItem = ({ item, index, handleLongPress, currentUserUID, searchedUs
     return (
         <Animated.View style={animatedStyle} {...panResponder.panHandlers}>
             <View key={index} style={{ backgroundColor: 'transparent' }}>
-
-
                 <TouchableOpacity
                     delayLongPress={200}
-                    style={item.from === currentUserUID ? [styles.sentMessage, { borderBottomRightRadius: index === 0 ? 0 : 20 }] : [styles.receivedMessage, { borderTopLeftRadius: index === 0 ? 0 : 20 }]}
+                    style={
+                        item.from === currentUserUID
+                            ? [styles.sentMessage, { borderBottomRightRadius: index === 0 ? 0 : 20 }]
+                            : [styles.receivedMessage, { borderTopLeftRadius: index === 0 ? 0 : 20 }]
+                    }
                     activeOpacity={0.75}
-                    onLongPress={(e) => handleLongPress(e, item)}>
-
-                    <View style={{ flexDirection: 'column', }}>
+                    onLongPress={(e) => handleLongPress(e, item)}
+                >
+                    <View style={{ flexDirection: 'column' }}>
                         <View style={{ justifyContent: 'flex-start', padding: 3 }}>
-                            {item.replyTo !== null &&
-                                <Text style={item.from === currentUserUID ? styles.sentReplyText : styles.receivedReplyText}>
+                            {item.replyTo !== null && (
+                                <Text
+                                    style={
+                                        item.from === currentUserUID
+                                            ? styles.sentReplyText
+                                            : styles.receivedReplyText
+                                    }
+                                >
                                     {item.replyTo}
                                 </Text>
-                            }
+                            )}
                             <Text style={item.from === currentUserUID ? styles.sentText : styles.receivedText}>
-                                {item.text}
+                                {formatMessageText(item.text)}
                             </Text>
                         </View>
-                        {item.timestamp &&
-                            <View style={{
-                                alignSelf: 'flex-end',
-                                paddingHorizontal: 3,
-                                alignItems: 'center',
-                                justifyContent: 'center'
-
-                            }}>
-                                <Text style={{
-                                    color: "#383849",
-                                    fontSize: 10,
-                                    textAlign: item.from === currentUserUID ? 'right' : 'left',
-
-                                }}>
-                                    {`${item.timestamp.toDate().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }).replace(':', ':')}  `}
-                                    {item.from === currentUserUID &&
+                        {item.timestamp && (
+                            <View
+                                style={{
+                                    alignSelf: 'flex-end',
+                                    paddingHorizontal: 3,
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                }}
+                            >
+                                <Text
+                                    style={{
+                                        color: '#383849',
+                                        fontSize: 10,
+                                        textAlign: item.from === currentUserUID ? 'right' : 'left',
+                                    }}
+                                >
+                                    {`${item.timestamp
+                                        .toDate()
+                                        .toLocaleTimeString('en-US', {
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                            hour12: false,
+                                        })
+                                        .replace(':', ':')}  `}
+                                    {item.from === currentUserUID && (
                                         <Text>
-                                            {item.messageStatus === "seen" ? <Ionicons name="checkmark-done-sharp" size={15} color="#4c7fb3" /> : <Ionicons name="checkmark-sharp" size={16} color="black" />}
+                                            {item.messageStatus === 'seen' ? (
+                                                <Ionicons
+                                                    name="checkmark-done-sharp"
+                                                    size={15}
+                                                    color="#4c7fb3"
+                                                />
+                                            ) : (
+                                                <Ionicons name="checkmark-sharp" size={16} color="black" />
+                                            )}
                                         </Text>
-                                    }
-
+                                    )}
                                 </Text>
                             </View>
-                        }
+                        )}
 
-                        {item.Reactions?.[searchedUserUID] &&
-                            <View style={{
-                                position: 'absolute',
-                                bottom: -10,
-                                zIndex: 100,
-                                right: item.from === currentUserUID ? 0 : null,
-                                left: item.from === currentUserUID ? null : 22,
-                                backgroundColor: 'rgba(0,0,0,0.2)',
-                                padding: 3,
-                                borderRadius: 50,
-                                justifyContent: 'center',
-                                alignItems: 'center',
-
-                            }}>
-                                <Text style={{ fontSize: 13 }}>
-                                    {item.Reactions?.[searchedUserUID]}
-                                </Text>
+                        {item.Reactions?.[searchedUserUID] && (
+                            <View
+                                style={{
+                                    position: 'absolute',
+                                    bottom: -10,
+                                    zIndex: 100,
+                                    right: item.from === currentUserUID ? 0 : null,
+                                    left: item.from === currentUserUID ? null : 22,
+                                    backgroundColor: 'rgba(0,0,0,0.2)',
+                                    padding: 3,
+                                    borderRadius: 50,
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                }}
+                            >
+                                <Text style={{ fontSize: 13 }}>{item.Reactions?.[searchedUserUID]}</Text>
                             </View>
-                        }
+                        )}
 
-                        {item.Reactions?.[currentUserUID] &&
-                            <View style={{
-                                position: 'absolute',
-                                bottom: -10,
-                                zIndex: 100,
-                                right: item.from === currentUserUID ? 22 : null,
-                                left: item.from === currentUserUID ? null : 0,
-                                backgroundColor: 'rgba(0,0,0,0.2)',
-                                padding: 3,
-                                borderRadius: 50,
-                                justifyContent: 'center',
-                                alignItems: 'center',
-
-                            }}>
-                                <Text style={{ fontSize: 13 }}>
-                                    {item.Reactions?.[currentUserUID]}
-                                </Text>
+                        {item.Reactions?.[currentUserUID] && (
+                            <View
+                                style={{
+                                    position: 'absolute',
+                                    bottom: -10,
+                                    zIndex: 100,
+                                    right: item.from === currentUserUID ? 22 : null,
+                                    left: item.from === currentUserUID ? null : 0,
+                                    backgroundColor: 'rgba(0,0,0,0.2)',
+                                    padding: 3,
+                                    borderRadius: 50,
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                }}
+                            >
+                                <Text style={{ fontSize: 13 }}>{item.Reactions?.[currentUserUID]}</Text>
                             </View>
-                        }
+                        )}
                     </View>
-
                 </TouchableOpacity>
-            </View >
-        </Animated.View >
+            </View>
+        </Animated.View>
     );
 };
+
 const styles = StyleSheet.create({
     sentMessage: {
         alignSelf: 'flex-end',
@@ -141,8 +194,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 10,
         maxWidth: '70%',
         paddingHorizontal: 4,
-        marginBottom: 7
-
+        marginBottom: 7,
     },
     receivedMessage: {
         alignSelf: 'flex-start',
@@ -151,16 +203,15 @@ const styles = StyleSheet.create({
         marginHorizontal: 10,
         maxWidth: '70%',
         paddingHorizontal: 4,
-        marginBottom: 7
-
+        marginBottom: 7,
     },
     sentText: {
-        fontFamily: 'Outfit-Black-Medium',
+        fontFamily: 'Outfit-Black-bold',
         fontSize: 14,
     },
     receivedText: {
         color: 'white',
-        fontFamily: 'Outfit-Black-Medium',
+        fontFamily: 'Outfit-Black-bold',
         fontSize: 14,
     },
     sentReplyText: {
@@ -168,7 +219,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontStyle: 'italic',
         borderBottomWidth: 1,
-        borderBottomColor: 'rgba(0,0,0,0.3)'
+        borderBottomColor: 'rgba(0,0,0,0.3)',
     },
     receivedReplyText: {
         color: 'rgba(255,255,255,0.7)',
@@ -176,5 +227,10 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontStyle: 'italic',
     },
-})
-export default MessagesItem
+    linkText: {
+        color: 'dodgerblue',
+        textDecorationLine: 'underline',
+    },
+});
+
+export default MessagesItem;

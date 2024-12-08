@@ -2,6 +2,3 @@ background : #171722
 backgroundLite  : #1f1f2d
 orange : #ff9301
 textOrange : #FF8C00
-
-web
-153489940234-r8n9qda2bseb60p0qan8nuvnu9ln4sm0.apps.googleusercontent.com

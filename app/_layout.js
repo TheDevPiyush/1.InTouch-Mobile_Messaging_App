@@ -26,13 +26,14 @@ const Layout = () => {
                 headerBackTitleVisible: false,
                 headerTitleStyle: {
                     color: 'white',
-                    fontStyle: 'Outfit-Black-Bold',
-                    fontSize: 20,
+                    fontStyle: 'Outfit-Black-Medium',
+                    fontSize: 17,
                 },
                 headerTintColor: '#FF8C00',
                 headerBackButtonMenuEnabled: true,
                 headerBackVisible: true,
-                headerTitleAlign: 'center'
+                headerTitleAlign: 'center',
+                headerBackTitle: "inbox"
             }} />
             <Stack.Screen name='ProfilePicModal' options={{
                 headerShown: false,

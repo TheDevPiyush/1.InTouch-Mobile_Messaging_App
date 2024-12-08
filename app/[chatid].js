@@ -9,6 +9,7 @@ import {
     TouchableOpacity,
     ActivityIndicator,
     Dimensions,
+    Animated
 } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -44,6 +45,7 @@ import CustomHeader from "./components/CustomHeader ";
 import * as Notifications from "expo-notifications";
 import { TypingAnimation } from "react-native-typing-animation";
 import RightSideMenu from "./components/RightSideMenu";
+import CustomHeaderName from "./components/CustomHeaderName";
 const Messages = () => {
     const [loaded] = useFonts({
         "Outfit-Black-Regular": require("../assets/Outfit-Regular.ttf"),
@@ -68,6 +70,8 @@ const Messages = () => {
     const [lastVisible, setLastVisible] = useState(null);
     const [messageLoading, setMessageLoading] = useState(false);
     const [currentUserName, setCurrentUserName] = useState("");
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+
     const [blockStatus, setBlockStatus] = useState({
         currentUserBlocked: false,
         otherUserBlocked: false,
@@ -90,7 +94,7 @@ const Messages = () => {
     useEffect(() => {
         if (username)
             navigation.setOptions({
-                headerTitle: username,
+                headerTitle: () => <CustomHeaderName username={username} />,
                 headerLeft: () => <CustomHeader userpicture={userpicture} />,
                 headerRight: () => (
                     <RightSideMenu
@@ -166,6 +170,23 @@ const Messages = () => {
     useEffect(() => {
         autoScroll();
     }, []);
+
+    useEffect(() => {
+        if (isTyping) {
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 300,
+                useNativeDriver: true,
+            }).start();
+        } else {
+            Animated.timing(fadeAnim, {
+                toValue: 0,
+                duration: 300,
+                useNativeDriver: true,
+            }).start();
+        }
+    }, [isTyping]);
+
 
     const fetchMoreMessages = async () => {
         if (!lastVisible) return;
@@ -485,26 +506,33 @@ const Messages = () => {
                             )}
                             keyExtractor={(item, index) => index}
                         />
-                        {isTyping && (
-                            <View
-                                style={{
-                                    marginBottom: 25,
-                                    marginHorizontal: 20,
-                                    justifyContent: "center",
-                                    alignItems: "flex-start",
-                                }}
-                            >
-                                <TypingAnimation
-                                    dotColor="rgba(255,255,255,0.5)"
-                                    dotRadius={4}
-                                    dotX={13}
-                                    dotY={6}
-                                    dotMargin={7}
-                                    dotAmplitude={4}
-                                    dotSpeed={0.1}
-                                />
-                            </View>
-                        )}
+                        <Animated.View
+                            style={{
+                                marginBottom: 25,
+                                marginHorizontal: 20,
+                                justifyContent: "center",
+                                alignItems: "flex-start",
+                                opacity: fadeAnim,
+                                transform: [
+                                    {
+                                        scale: fadeAnim.interpolate({
+                                            inputRange: [0, 1],
+                                            outputRange: [0.9, 1],
+                                        }),
+                                    },
+                                ],
+                            }}
+                        >
+                            <TypingAnimation
+                                dotColor="rgba(255,255,255,0.5)"
+                                dotRadius={4}
+                                dotX={13}
+                                dotY={6}
+                                dotMargin={7}
+                                dotAmplitude={4}
+                                dotSpeed={0.1}
+                            />
+                        </Animated.View>
                         {reply && (
                             <View
                                 style={{
@@ -630,14 +658,12 @@ const Messages = () => {
                             keyExtractor={(item, index) => index}
                         />
                         {isTyping && (
-                            <View
-                                style={{
-                                    marginBottom: 25,
-                                    marginHorizontal: 20,
-                                    justifyContent: "center",
-                                    alignItems: "flex-start",
-                                }}
-                            >
+                            <View style={{
+                                marginBottom: 25,
+                                marginHorizontal: 20,
+                                justifyContent: "center",
+                                alignItems: "flex-start",
+                            }}>
                                 <TypingAnimation
                                     dotColor="rgba(255,255,255,0.5)"
                                     dotRadius={4}
@@ -645,8 +671,7 @@ const Messages = () => {
                                     dotY={6}
                                     dotMargin={7}
                                     dotAmplitude={4}
-                                    dotSpeed={0.1}
-                                />
+                                    dotSpeed={0.1} />
                             </View>
                         )}
                         {reply && (

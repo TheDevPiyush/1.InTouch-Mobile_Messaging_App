@@ -5,7 +5,6 @@ import { collection, query, where, onSnapshot, orderBy, limit, doc, getDoc, setD
 import { router, useNavigation } from 'expo-router';
 import { useFonts } from 'expo-font';
 import Ionicons from '@expo/vector-icons/Ionicons'
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RootSiblingParent } from 'react-native-root-siblings';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
@@ -33,7 +32,6 @@ const ChatsTab = () => {
             } else {
                 try {
                     Alert.alert('Session Expired', 'Your session has expired, Please login again.')
-                    await AsyncStorage.setItem("LoggedIn", 'false');
                     await signOut(auth);
                     router.replace('/')
                 } catch (error) {

@@ -108,10 +108,8 @@ const Signup = () => {
 
             <StatusBar barStyle='light-content' />
 
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} >
-                <ScrollView keyboardShouldPersistTaps="handled" overScrollMode='never' showsVerticalScrollIndicator={false} contentContainerStyle={{
-                    backgroundColor: "rgba(255, 0,0,0)", flexGrow: 1
-                }}>
+            <KeyboardAvoidingView style={{ backgroundColor: "rgba(0,255,0,0)" }} behavior={Platform.OS === 'ios' ? 'height' : 'height'} >
+                <ScrollView keyboardShouldPersistTaps="handled" overScrollMode='never'>
                     {/* Main View */}
                     <View style={{
                         marginTop: '1%', marginHorizontal: 15
@@ -122,7 +120,7 @@ const Signup = () => {
                             fontSize: 35,
                             fontFamily: 'Outfit-Black-Medium',
                         }}>Sign Up</Text>
-                        <Text style={styles.labelStyle}>Username</Text>
+                        <Text style={styles.labelStyle}>Choose a unique Username</Text>
                         <View style={[styles.inputContainer, focused === "username" && styles.focusInput]}>
                             <TextInput
                                 cursorColor={'#ff9301'}
@@ -141,7 +139,7 @@ const Signup = () => {
                                 placeholderTextColor='rgba(128, 128,128,0.6)'
                             />
                         </View>
-                        <Text style={styles.labelStyle}>Email</Text>
+                        <Text style={styles.labelStyle}>Enter an Email <Text style={{ opacity: "0.7", fontSize: 12 }}>(only you can see this email)</Text></Text>
                         <View style={[styles.inputContainer, focused === "email" && styles.focusInput]}>
                             <TextInput
                                 cursorColor={'#ff9301'}
@@ -156,7 +154,8 @@ const Signup = () => {
                                 placeholderTextColor='rgba(128, 128,128,0.6)'
                             />
                         </View>
-                        <Text style={styles.labelStyle}>Password</Text>
+                        <Text style={styles.labelStyle}>Choose a Strong Password
+                            <Text style={{ opacity: "0.7", fontSize: 12 }}> (Use Strong Combinations)</Text></Text>
                         <View style={[styles.inputContainer, focused === "password" && styles.focusInput]}>
                             <TextInput
                                 cursorColor={'#ff9301'}

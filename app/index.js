@@ -1,19 +1,19 @@
 import { useEffect } from 'react';
 import { SplashScreen, useNavigation } from 'expo-router';
 import { auth } from '../firebaseConfig';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View } from 'react-native';
 
 const Index = () => {
     const navigation = useNavigation();
 
     useEffect(() => {
+        console.log(1);
         const unsubscribe = auth.onAuthStateChanged(async (user) => {
             if (user) {
-                await AsyncStorage.setItem('LoggedIn', 'true');
+                console.log(2);
                 navigation.reset({ index: 0, routes: [{ name: "(tabs)" }] });
             } else {
-                await AsyncStorage.setItem('LoggedIn', 'false');
+                console.log(3);
                 navigation.reset({ index: 0, routes: [{ name: "Login" }] });
             }
             await SplashScreen.hideAsync();

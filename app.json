@@ -1,6 +1,7 @@
 {
   "expo": {
     "name": "InTouch",
+    "newArchEnabled": true,
     "slug": "InTouch",
     "scheme": "intouch",
     "version": "1.0.7",
